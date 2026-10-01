@@ -7,7 +7,7 @@ import cv2
 from camera import load_calib
 
 class KittiRawDrive:
-    CALIB_FOLDER = "caliberation"
+    CALIB_FOLDER = "caliberation files"
 
     def __init__(self, root, date, drive, depth_root = None, cam_id = 2):
         """
@@ -21,7 +21,7 @@ class KittiRawDrive:
         self.drive_name = f"{date}_drive_{int(drive):04d}_sync"               # 2011_09_26_drive_0023_sync
         self.date_dir = os.path.join(root, date)                              # data/2011_09_26
         self.drive_dir = os.path.join(self.date_dir, self.drive_name)         # data/2011_09_26/2011_09_26_drive_0023_sync
-        self.calib_dir = os.path.join(self.drive_dir, self.CALIB_FOLDER)      # data/2011_09_26/2011_09_26_drive_0023_sync/caliberation
+        self.calib_dir = os.path.join(self.date_dir, self.CALIB_FOLDER)      # data/2011_09_26//caliberation files
         self.depth_root = depth_root
 
         if not os.path.exists(self.drive_dir):
@@ -39,7 +39,7 @@ class KittiRawDrive:
 
     @staticmethod
     def _name(idx):
-        return f"{idx:0:10d}"
+        return f"{idx:010d}"
 
     def __len__(self):
         img_dir = os.path.join(self.drive_dir, f"image_0{self.cam_id}", "data")

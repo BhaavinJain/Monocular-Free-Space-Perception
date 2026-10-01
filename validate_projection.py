@@ -17,11 +17,11 @@ import argparse
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")            # render to file, no window needed
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 from camera import (transform_points, project, in_image_mask, backproject, lidar_to_depth_map)
 
-from Kitti_loader import KittiRawDrive
+from kitti_loader import KittiRawDrive
 
 def check_1_overlay(drive, frame, out_path):
     img = drive.load_image(frame)
@@ -77,4 +77,43 @@ def check_2_roundtrip(drive, frame):
           "are not inverses (check fx/fy/cx/cy indexing)")
     return ok
 
-def check_3_vs_kitti_gt(drive, frame):
+def check_3_vs_kitti_gt(drive, frame):                         # The comparision against KITTI
+    gt = drive.load_depth_gt(frame)
+    if gt is None:
+        print("[check 3] skipped (no --depth_root, or no GT for this frame; "
+              "GT starts at frame 5)")
+        return None
+    # building out own depth map
+    H,W = gt.shape
+    ours = lidar_to_depth_map(drive.load_velodyne(frame), drive.K, drive.T_cam_velo, H, W)
+    both = (ours > 0) & (gt > 0)          # where both depth maps have a value
+    diff = np.abs(ours[both] - gt[both])
+    print(f"[check 3] {both.sum()} pixels where both have depth")
+    print(f"[check 3] median |ours - GT| = {np.median(diff):.3f} m, "
+          f"{100 * np.mean(diff < 0.5):.1f}% within 0.5 m")
+    return np.median(diff)
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--root", default="data",
+                   help="folder containing the day folders")
+    p.add_argument("--date", default="2011_09_26")
+    p.add_argument("--drive", default="23")
+    p.add_argument("--frame", type=int, default=10)
+    p.add_argument("--depth_root", default=None)
+    p.add_argument("--out", default="lidar_overlay.png")
+    a = p.parse_args()
+ 
+    drive = KittiRawDrive(a.root, a.date, a.drive, depth_root=a.depth_root)
+    print("calibration read from:", drive.calib_dir)
+    print("K =\n", np.round(drive.K, 3))
+    print("T_cam_velo =\n", np.round(drive.T_cam_velo, 4))
+ 
+    check_1_overlay(drive, a.frame, a.out)
+    check_2_roundtrip(drive, a.frame)
+    check_3_vs_kitti_gt(drive, a.frame)
+ 
+ 
+if __name__ == "__main__":
+    main()
+    
