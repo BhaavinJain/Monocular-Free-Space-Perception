@@ -18,6 +18,8 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")            # render to file, no window needed
 import matplotlib.pyplot as plt
+import contextlib
+import os
 
 from camera import (transform_points, project, in_image_mask, backproject, lidar_to_depth_map)
 
@@ -101,17 +103,26 @@ def main():
     p.add_argument("--drive", default="23")
     p.add_argument("--frame", type=int, default=10)
     p.add_argument("--depth_root", default=None)
-    p.add_argument("--out", default="lidar_overlay.png")
+    p.add_argument("--report_dir", default="report")
     a = p.parse_args()
+
+    tag = f"phase1_frame{a.frame:03d}"
+    txt_path = os.path.join(a.report_dir, f"validation_results_{a.frame:03d}.txt")
+    img_path = os.path.join(a.report_dir, "image", f"check1_overlay_{a.frame:03d}.png")
+    os.makedirs(os.path.dirname(img_path), exist_ok=True)
  
-    drive = KittiRawDrive(a.root, a.date, a.drive, depth_root=a.depth_root)
-    print("calibration read from:", drive.calib_dir)
-    print("K =\n", np.round(drive.K, 3))
-    print("T_cam_velo =\n", np.round(drive.T_cam_velo, 4))
+    with open(txt_path, "w", encoding="utf-8") as f, contextlib.redirect_stdout(f):
+        drive = KittiRawDrive(a.root, a.date, a.drive, depth_root=a.depth_root)
+        print("calibration read from:", drive.calib_dir)
+        print("K =\n", np.round(drive.K, 3))
+        print("T_cam_velo =\n", np.round(drive.T_cam_velo, 4))
  
-    check_1_overlay(drive, a.frame, a.out)
-    check_2_roundtrip(drive, a.frame)
-    check_3_vs_kitti_gt(drive, a.frame)
+        check_1_overlay(drive, a.frame, img_path)
+        check_2_roundtrip(drive, a.frame)
+        check_3_vs_kitti_gt(drive, a.frame)
+ 
+    # Then show the saved results on screen too.
+    print(open(txt_path, encoding="utf-8").read())
  
  
 if __name__ == "__main__":

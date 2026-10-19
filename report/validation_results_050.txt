@@ -1,0 +1,16 @@
+calibration read from: data\2011_09_26\caliberation files
+K =
+ [[721.538   0.    609.559]
+ [  0.    721.538 172.854]
+ [  0.      0.      1.   ]]
+T_cam_velo =
+ [[ 2.000e-04 -9.999e-01 -1.060e-02  5.710e-02]
+ [ 1.040e-02  1.060e-02 -9.999e-01 -7.550e-02]
+ [ 9.999e-01  1.000e-04  1.050e-02 -2.694e-01]
+ [ 0.000e+00  0.000e+00  0.000e+00  1.000e+00]]
+[check 1] 113654 LiDAR points, 19489 land in the image (17.1%) — expect roughly 15-25%, since the LiDAR sees 360 deg and the camera ~90 deg
+[check 1] saved overlay -> report\image\check1_overlay_050.png
+[check 2] round-trip on 19446 pixels: max error = 2.27e-13 px
+[check 2] PASS
+[check 3] 7771 pixels where both have depth
+[check 3] median |ours - GT| = 0.034 m, 93.0% within 0.5 m
