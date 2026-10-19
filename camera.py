@@ -1,19 +1,3 @@
-"""Pinhole camera geometry for KITTI : moving points between 3D and the image plane.
-    velo --> Velodyne LiDAR frame: 3D points in the velodyne coordinate system (X_forward, Y_left, Z_up) (METRES)
-    cam --> RECTIFIED camera-2 frame: 3D points in the left color camera coordinate  (X_right, Y_down, Z_forward) (METRES)
-        (example: "5m ahead" means x=5 in velo and z=5 in cam)
-
-    (note: the camera frame is right-handed, while the velodyne frame is left-handed)
-
-    A 4x4 matrix called 'T_a_b' takes a point written in frame b and returns the same physical point written in frame a:
- 
-        p_a = T_a_b @ p_b          (@ is matrix multiplication, p_a and p_b are 4x1 homogeneous coordinates)
-        
-        Chains read right-to-left and the inner letters must cancel:
- 
-        T_a_c = T_a_b @ T_b_c        (b cancels -> correct)
-""" 
-
 import numpy as np
 
 def _read_calib_file(path):                 # turn a KITTI text calibration file into a dictionary of NumPy arrays.
@@ -30,14 +14,6 @@ def _read_calib_file(path):                 # turn a KITTI text calibration file
     return data
 
 def load_calib(cam_to_cam_path, velo_to_cam_path, cam_id = 2):           
-    """Building 2 things every later phase needs:
-        1) K : 3x3 camera intrinsics matrix of rectified camera
-        2) T_cam_velo : 4x4 rigid body transformation matrix, LiDAR frame -> rectified camera frame
-               
-        a) R,T in calib_velo_to_cam.txt are the from velodyne to camera frame 0 (unrectified) = T_cam0_velo
-        b) R_rect_00 in calib_cam_to_cam.txt is the small rectification rotation for camera 0 = T_rect0_cam0
-        c) P_rect_02 in calib_cam_to_cam.txt, the 3x4 projection matrix rectified cam-0 frame -> pixels of camera 2""" 
-
     c2c = _read_calib_file(cam_to_cam_path)
     v2c = _read_calib_file(velo_to_cam_path)
 
@@ -46,7 +22,7 @@ def load_calib(cam_to_cam_path, velo_to_cam_path, cam_id = 2):
     T_cam0_velo[:3 , :3] = v2c["R"].reshape(3,3)         # Rotation
     T_cam0_velo[:3 , 3] = v2c["T"].reshape(3)            # Translation
  
-    # (b) Camera 0 rectification           (pure rotation)
+    # (b) Camera 0 rectification
     T_rect0_cam0 = np.eye(4)
     T_rect0_cam0[:3 , :3] = c2c["R_rect_00"].reshape(3,3)
 
@@ -64,22 +40,13 @@ def load_calib(cam_to_cam_path, velo_to_cam_path, cam_id = 2):
 
     return K, T_cam_velo
 
-def transform_points(points, T):  # Transform points from 4x4 rigid transform to (N,3) array of points (3D TO 3D) )
-    # PERFORMS THE VELO TO CAM CONVERSION
+def transform_points(points, T):   # PERFORMS THE VELO TO CAM CONVERSION
     points = np.asarray(points, dtype=np.float64)
     ones = np.ones((points.shape[0], 1))
     homo = np.hstack([points, np.ones((points.shape[0], 1))])      # (N, 4),turning [x, y, z] into [x, y, z, 1] (horizontal stacking)
     return (T@ homo.T).T[:, :3]          
 
 def project(points_cam, K):              # 3D camera to 2D pixel,    
-    """1) returns uv : (N x 2), float pixel coordinates
-       2) returns z :(N,) depth of each point along the optical axis
-
-        # WARNING: points with Z <= 0 are BEHIND the camera. The formula still
-        returns numbers for them (mirrored, garbage). Always filter with
-        in_image_mask() before using the result.
-    """
-
     points_cam = np.asarray(points_cam, dtype = np.float64)
     z = points_cam[: , 2]
     proj = (K @ points_cam.T).T
@@ -88,11 +55,6 @@ def project(points_cam, K):              # 3D camera to 2D pixel,
     return uv,z
 
 def in_image_mask(uv , z, height, width, min_depth = 0.1):
-    """
-    Keep only points that 
-    (1) are in front of the camera and
-    (2) land inside the image after rounding to a pixel.
-    """
     u = np.round(uv[: , 0])
     v = np.round(uv[: , 1])
     return ((z > min_depth) & (u >= 0) & (u < width) & (v >= 0) & (v < height))
@@ -110,13 +72,10 @@ def backproject(depth_map, K):                # Inverse of project , rebuild the
     return np.stack([X,Y,Z], axis = -1)
 
 def lidar_to_depth_map(points_velo, K, T_cam_velo, height, width):
-    """Project LiDAR points into a depth map of (H,W) in the camera frame. Most pixels stay 0 — LiDAR is SPARSE (~5% coverage)
-    """
     # Take x, y, z only (the Velodyne's 4th column is reflectance, which isn't geometry) and move them into the camera frame.
-    pts_cam = transform_points(points_velo[:, :3], T_cam_velo)     # Take points in velo and convert them into camera frame (3D to 3D)
-    uv, z = project(pts_cam, K)                                  # Take points in camera frame and project them into the image plane (3D to 2D)
-    keep = in_image_mask(uv, z, height, width)                  # Keep only points that are in front of the camera and land inside the image after rounding to a pixel.
-    
+    pts_cam = transform_points(points_velo[:, :3], T_cam_velo)     
+    uv, z = project(pts_cam, K)                                 
+    keep = in_image_mask(uv, z, height, width)                  
     u = np.round(uv[keep, 0]).astype(int)
     v = np.round(uv[keep, 1]).astype(int)
     z = z[keep]
