@@ -106,7 +106,6 @@ def main():
     p.add_argument("--report_dir", default="report")
     a = p.parse_args()
 
-    tag = f"phase1_frame{a.frame:03d}"
     txt_path = os.path.join(a.report_dir, f"validation_results_{a.frame:03d}.txt")
     img_path = os.path.join(a.report_dir, "image", f"check1_overlay_{a.frame:03d}.png")
     os.makedirs(os.path.dirname(img_path), exist_ok=True)
@@ -127,4 +126,3 @@ def main():
  
 if __name__ == "__main__":
     main()
-    
