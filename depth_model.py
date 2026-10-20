@@ -50,18 +50,17 @@ class DepthModel:
         self.output_type = getattr(self.model.config,
                                    "depth_estimation_type", "relative")
 
-        @torch.no_grad()
-        def predict(self, image_rgb):
-            # uint8 (H, W, 3) RGB -> float32 (H, W) prediction, same size
-            H, W = image_rgb.shape[:2]
-            h14 = max(PATCH, int(round(H / PATCH)) * PATCH)
-            w14 = max(PATCH, int(round(W / PATCH)) * PATCH)
+    @torch.no_grad()
+    def predict(self, image_rgb):
+        # uint8 (H, W, 3) RGB -> float32 (H, W) prediction, same size
+        H, W = image_rgb.shape[:2]
+        h14 = max(PATCH, int(round(H / PATCH)) * PATCH)
+        w14 = max(PATCH, int(round(W / PATCH)) * PATCH)
 
-            x = to_input_tensor(image_rgb, self.mean, self.std).unsqueeze(0)    # (1, 3, H, W)
-            if (h14, w14) != (H, W):
-                x = F.interpolate(x, size=(h14, w14), mode="bilinear" ,align_corners=False)
-            x = x.to(self.device)
-            out = self.model(pixel_values=x).predicted_depth      # (1, h14, w14)
-            out = F.interpolate(out.unsqueeze(1), size=(H, W), mode="bilinear",
-                            align_corners=False)[0, 0]
-            return out.float().cpu().numpy()                # Copying from GPU to CPU memory, and converting from torch tensor to numpy array
+        x = to_input_tensor(image_rgb, self.mean, self.std).unsqueeze(0)    # (1, 3, H, W)
+        if (h14, w14) != (H, W):
+            x = F.interpolate(x, size=(h14, w14), mode="bilinear" ,align_corners=False)
+        x = x.to(self.device)
+        out = self.model(pixel_values=x).predicted_depth      # (1, h14, w14)
+        out = F.interpolate(out.unsqueeze(1), size=(H, W), mode="bilinear",align_corners=False)[0, 0]
+        return out.float().cpu().numpy()                # Copying from GPU to CPU memory, and converting from torch tensor to numpy array

@@ -1,0 +1,15 @@
+checkpoint: depth-anything/Depth-Anything-V2-Metric-Outdoor-Small-hf  (config says: metric)
+
+frame 10: a=0.084  b=0.091  c=609.231
+frame 50: a=0.150  b=0.117  c=1033.334
+frame 100: a=0.149  b=0.162  c=1005.221
+frame 150: a=0.103  b=0.109  c=624.035
+
+Mean AbsRel after the best fit of each hypothesis (lower = better):
+  a: scale-only depth        0.1215
+  b: affine depth            0.1200
+  c: affine inverse depth    817.9553
+
+VERDICT: depth up to a single SCALE. The shift adds little, so camera-height scale recovery is valid for this checkpoint.
+
+scatter plot -> report\image\explore_depth_metric.png

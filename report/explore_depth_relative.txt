@@ -1,0 +1,15 @@
+checkpoint: depth-anything/Depth-Anything-V2-Small-hf  (config says: relative)
+
+frame 10: a=0.659  b=0.378  c=0.060
+frame 50: a=0.841  b=0.353  c=0.093
+frame 100: a=0.905  b=0.502  c=0.156
+frame 150: a=0.641  b=0.353  c=0.083
+
+Mean AbsRel after the best fit of each hypothesis (lower = better):
+  a: scale-only depth        0.7615
+  b: affine depth            0.3964
+  c: affine inverse depth    0.0982
+
+VERDICT: affine INVERSE depth (disparity). One constraint is NOT enough — do not use this checkpoint with s = h/d.
+
+scatter plot -> report\image\explore_depth_relative.png

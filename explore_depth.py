@@ -21,7 +21,7 @@ def fit_hypotheses(pred, gt):
     # (b) affine depth          gt   = s * pred + t       2 unknowns
     A = np.stack([pred, np.ones_like(pred)], axis=1)
     s, t = np.linalg.lstsq(A, gt, rcond=None)[0]
-    res["b: affine depth"] = (np.mean(np.abs(gt - (s * pred + t - gt)) / gt), (s, t))
+    res["b: affine depth"] = (np.mean(np.abs(s * pred + t - gt) / gt), (s, t))
 
     # (c) affine inverse depth  1/gt = s * pred + t , then depth = 1 / (s * pred + t)   2 unknowns (disparity)
     (s, t), *_ = np.linalg.lstsq(A, 1.0 / gt, rcond=None)
