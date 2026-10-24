@@ -54,31 +54,11 @@ class KittiRawDrive:
             raise FileNotFoundError(path)
         return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    def load_velodyne(self, idx):
-        """
-        LiDAR scan as (N, 4) float32: x, y, z, reflectance.
-        The .bin file is a raw dump of float32 numbers with no header,
-        so we read it flat and reshape into rows of 4.
-        N is roughly 100-120k points per scan.
-        """
+    def load_velodyne(self, idx):    # LiDAR scan as (N, 4) float32: x, y, z, reflectance.
         path = os.path.join(self.drive_dir, "velodyne_points", "data", self._name(idx) + ".bin")
         return np.fromfile(path, dtype = np.float32).reshape(-1,4)
 
     def load_depth_gt(self, idx):
-        """
-        loads KITTI's official depth ground truth for one frame: 
-        an (H, W) array where each pixel holds the true distance in metres, or 0 where there's no measurement
-
-        Rebuild the depth map yourself from raw LiDAR, and 
-        compare it pixel-by-pixel against KITTI's official version to prove your geometry matches theirs.
- 
-        Encoding: 16-bit PNG, depth_in_metres = pixel_value / 256.
-        IMREAD_UNCHANGED is essential — the default flag would squash the
-        16-bit values to 8-bit and silently destroy the depth.
- 
-        Note: the benchmark skips the first and last 5 frames of each
-        drive, so frame 0 has no GT. Returns None if the file is missing.
-        """
         if self.depth_root is None:
             return None
         for split in ("train", "val"):
