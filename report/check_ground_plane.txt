@@ -1,0 +1,14 @@
+expected camera height: 1.65 m
+
+frame 10: valid=True (ok)
+   ours    : height d = 1.774 m, tilt = 1.25 deg, inliers = 88% of 12192 pts
+   open3d  : height d = 1.769 m, normal differs from ours by 0.20 deg (tilt from up: 1.1 deg)
+   picture -> report\image\ground_plane_010.png
+frame 50: valid=True (ok)
+   ours    : height d = 1.667 m, tilt = 0.43 deg, inliers = 77% of 11964 pts
+   open3d  : height d = 1.648 m, normal differs from ours by 0.11 deg (tilt from up: 0.4 deg)
+   picture -> report\image\ground_plane_050.png
+frame 100: valid=True (ok)
+   ours    : height d = 1.688 m, tilt = 0.13 deg, inliers = 64% of 10275 pts
+   open3d  : height d = 1.687 m, normal differs from ours by 0.05 deg (tilt from up: 0.1 deg)
+   picture -> report\image\ground_plane_100.png
