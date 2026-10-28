@@ -1,3 +1,4 @@
 .venv/
 data/**
 Explain.MD
+checkpoints\depth_best.pt
