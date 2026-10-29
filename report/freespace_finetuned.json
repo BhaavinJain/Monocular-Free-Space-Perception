@@ -2,6 +2,8 @@
   "tag": "finetuned",
   "weights": "checkpoints\\depth_best.pt",
   "scale": "height",
+  "drivable": "none",
+  "robot_radius_m": 1.0,
   "cell_m": 0.1,
   "x_max_m": 20.0,
   "y_half_m": 10.0,
@@ -12,25 +14,29 @@
       "free_iou": 0.8300003334111292,
       "false_free_rate": 0.07622030413905195,
       "missed_obstacle_rate": 0.1643305171530978,
-      "cells_evaluated": 202191
+      "cells_evaluated": 202191,
+      "false_free_rate_inflated": 0.018367824025113826
     },
     "0-10m": {
       "free_iou": 0.910132204812535,
       "false_free_rate": 0.019628157552696517,
       "missed_obstacle_rate": 0.10631568207325783,
-      "cells_evaluated": 65943
+      "cells_evaluated": 65943,
+      "false_free_rate_inflated": 0.0011099899091826437
     },
     "10-15m": {
       "free_iou": 0.8155840908685014,
       "false_free_rate": 0.08589214940550062,
       "missed_obstacle_rate": 0.15682333162780498,
-      "cells_evaluated": 79064
+      "cells_evaluated": 79064,
+      "false_free_rate_inflated": 0.03331668019733966
     },
     "15-20m": {
       "free_iou": 0.739024599788081,
       "false_free_rate": 0.1480919054535851,
       "missed_obstacle_rate": 0.20171770313413373,
-      "cells_evaluated": 52672
+      "cells_evaluated": 52672,
+      "false_free_rate_inflated": 0.02795820389720418
     }
   }
 }

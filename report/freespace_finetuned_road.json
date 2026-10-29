@@ -1,0 +1,42 @@
+{
+  "tag": "finetuned_road",
+  "weights": "checkpoints\\depth_best.pt",
+  "scale": "height",
+  "drivable": "road",
+  "robot_radius_m": 1.0,
+  "cell_m": 0.1,
+  "x_max_m": 20.0,
+  "y_half_m": 10.0,
+  "frames_refused": 0,
+  "refused": [],
+  "metrics": {
+    "all": {
+      "free_iou": 0.7232224702433017,
+      "false_free_rate": 0.03015886421004232,
+      "missed_obstacle_rate": 0.051427291346646184,
+      "cells_evaluated": 202191,
+      "false_free_rate_inflated": 0.001529860882744027
+    },
+    "0-10m": {
+      "free_iou": 0.7972784553204257,
+      "false_free_rate": 0.011315386298971329,
+      "missed_obstacle_rate": 0.052749719416386086,
+      "cells_evaluated": 65943,
+      "false_free_rate_inflated": 3.155470007257581e-05
+    },
+    "10-15m": {
+      "free_iou": 0.6782506537310039,
+      "false_free_rate": 0.029078283513264254,
+      "missed_obstacle_rate": 0.039178422629924714,
+      "cells_evaluated": 79064,
+      "false_free_rate_inflated": 0.0019214346712211785
+    },
+    "15-20m": {
+      "free_iou": 0.6826935139882072,
+      "false_free_rate": 0.06249461624601602,
+      "missed_obstacle_rate": 0.06524573946670265,
+      "cells_evaluated": 52672,
+      "false_free_rate_inflated": 0.003838771593090211
+    }
+  }
+}
