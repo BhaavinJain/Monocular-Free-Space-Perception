@@ -1,8 +1,6 @@
 {
-  "passed": false,
-  "findings": [
-    "crop frame 262 x0 850 NOT refused (scale 3.451)"
-  ],
+  "passed": true,
+  "findings": [],
   "checks": [
     {
       "name": "GET /health",
@@ -48,8 +46,8 @@
         "false_free_rate_inflated": 0.0
       },
       "scale": 0.8651504094995361,
-      "verdict": "Clear from 6 m to 20 m ahead; the first 6 m are outside the camera's view. Nearest obstacle: terrain 5.3 m ahead, 1.9 m to the right.",
-      "total_ms": 1416
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: terrain 5.3 m ahead, 1.9 m to the right.",
+      "total_ms": 662
     },
     {
       "name": "sample 0023_000107",
@@ -64,8 +62,8 @@
         "false_free_rate_inflated": 0.0005128205128205128
       },
       "scale": 0.8834488251238577,
-      "verdict": "Clear from 6 m to 20 m ahead; the first 6 m are outside the camera's view.",
-      "total_ms": 1746
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
+      "total_ms": 658
     },
     {
       "name": "sample 0023_000210",
@@ -80,8 +78,8 @@
         "false_free_rate_inflated": 0.0
       },
       "scale": 0.8841676830028209,
-      "verdict": "Clear from 6 m to 20 m ahead; the first 6 m are outside the camera's view. Nearest obstacle: car 5.4 m ahead, 1.9 m to the right.",
-      "total_ms": 1841
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.4 m ahead, 1.9 m to the right.",
+      "total_ms": 611
     },
     {
       "name": "sample 0023_000262",
@@ -96,8 +94,8 @@
         "false_free_rate_inflated": 0.0006215040397762585
       },
       "scale": 0.879520590625792,
-      "verdict": "Clear from 6 m to 20 m ahead; the first 6 m are outside the camera's view.",
-      "total_ms": 1713
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
+      "total_ms": 602
     },
     {
       "name": "sample 0023_000365",
@@ -112,8 +110,8 @@
         "false_free_rate_inflated": 0.0
       },
       "scale": 0.8719552732128012,
-      "verdict": "Clear from 6 m to 20 m ahead; the first 6 m are outside the camera's view. Nearest obstacle: car 5.2 m ahead, 1.9 m to the right.",
-      "total_ms": 1792
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.2 m ahead, 1.9 m to the right.",
+      "total_ms": 624
     },
     {
       "name": "sample 0023_000468",
@@ -128,8 +126,8 @@
         "false_free_rate_inflated": 0.0
       },
       "scale": 0.8792079389882294,
-      "verdict": "Clear from 6 m to 20 m ahead; the first 6 m are outside the camera's view.",
-      "total_ms": 1809
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
+      "total_ms": 603
     },
     {
       "name": "upload full KITTI frame, h=1.65, hfov=80: sensible grid",
@@ -150,7 +148,7 @@
         "model_hfov_deg": 37.3,
         "fov_source": "user"
       },
-      "total_ms": 1807
+      "total_ms": 666
     },
     {
       "name": "EXIF orientation 6 + f35: portrait, fx from the diagonal",
@@ -310,7 +308,7 @@
     },
     {
       "name": "upper-image KITTI crops are refused (pipeline level)",
-      "passed": false,
+      "passed": true,
       "crops": [
         {
           "frame": 5,
@@ -336,8 +334,8 @@
         {
           "frame": 262,
           "x0": 850,
-          "status": "ok",
-          "reason": "ok",
+          "status": "refused",
+          "reason": "camera-height scale (3.5x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
           "tilt_deg": 7.381000274143675
         },
         {

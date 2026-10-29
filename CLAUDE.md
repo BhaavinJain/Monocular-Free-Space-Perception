@@ -199,8 +199,10 @@ Uploads must be at least 294 px on the short side (no upscaling).
 - `level` and `text`:
   - `blocked` when the corridor's free run ends at an OCCUPIED cell: "Stop: <class> <d> m ahead"
     (the blocking cell nearest the centre line);
-  - `clear`: "Clear from <a> m to <b> m ahead; the first <a> m are outside the camera's view."
-    plus, if there is one, "Nearest obstacle: <class> <d> m ahead, <y> m to the <side>.";
+  - `clear`: "Clear from <a> m to <b> m ahead; the floor in the first <a> m is outside
+    the camera's view." plus, if there is one, "Nearest obstacle: <class> <d> m ahead,
+    <y> m to the <side>." ("the floor": an object's upper part can be seen closer
+    than <a>, so "nearest obstacle 5.4 m" next to "first 6 m" is not a contradiction);
   - `unknown`: the corridor is never fully visible, or nothing in it is known to be free;
   - `refused`: "No floor found: <reason>" (no metric fields at all).
 - Also `path_reach_m` (farthest forward point of the A* path) and `path_length_m`.
@@ -234,10 +236,26 @@ for the crop and the LiDAR grid (built as in `eval_freespace.py`, visibility for
 and measures LiDAR grid metrics and depth AbsRel live for that request.
 KITTI: CC BY-NC-SA 3.0, credited in `samples.json` and (M6) the README.
 
-**Known limitation (found in M4):** the plane-fit validity check accepted a crop of
-a building facade with balconies (no road): tilt 7.4 deg, scale 3.45, about 4x the
-0.87-0.89 of real KITTI frames. See `report/api_check.json`. Not fixed yet; any
-change to the validity check needs approval (core file).
+**Scale plausibility check (added after M4, `scale.py`).** In M4 the plane-fit
+validity check (tilt + inlier share) accepted a crop of a building facade with
+balconies (no road): tilt 7.4 deg, scale 3.45, about 4x the 0.87-0.89 of real
+KITTI frames (recorded in the M4 commit's `report/api_check.json`).
+`estimate_metric_scale` now also refuses when s is outside [0.5, 2.0], with the
+reason "camera-height scale (N.Nx) disagrees with the network's own metres: the
+detected floor is probably not the floor, or the camera height is wrong".
+This check RELIES ON THE DEPTH NETWORK BEING ROUGHLY METRIC. It would wrongly
+refuse valid floors with a relative-depth model, or wherever the metric model is
+off by more than 2x — possibly indoors, since the network is Metric-OUTDOOR and
+fine-tuned on KITTI. Phase 6 (NYU / DIODE) must report how often it refuses.
+
+**M6 presentation rules for the verdict:**
+- Present it as an estimate from ONE photo, not a guarantee: small input changes
+  can flip it (M4: KITTI frame 5 as a sample said "Clear 6 -> 20 m"; the same frame
+  uploaded with an estimated K said "Stop: car 15.8 m ahead"). Show the grid and
+  the photo next to it so the user can see why.
+- Do NOT suppress isolated OCCUPIED cells (no despeckling, no minimum blob size)
+  to make the verdict steadier: an isolated cell may be a real thin obstacle
+  (a pole, a bollard), and hiding it trades safety for a calmer display.
 
 ## Phase 5 — milestones (do them in order; each must pass before the next)
 

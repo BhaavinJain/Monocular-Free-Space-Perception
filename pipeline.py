@@ -211,10 +211,11 @@ def describe(grid, pts, labels, sem_k, path_m, T, K, H, W, P):
         level, text = "unknown", "The corridor straight ahead is not in the camera's view."
     elif cc <= vf:
         level, text = "unknown", (f"Nothing straight ahead is known to be free; "
-                                  f"the first {vf:.0f} m are outside the camera's view.")
+                                  f"the floor in the first {vf:.0f} m is outside the camera's view.")
     else:
+        # "the floor": an object's upper part can be seen inside that distance
         level, text = "clear", (f"Clear from {vf:.0f} m to {cc:.0f} m ahead; "
-                                f"the first {vf:.0f} m are outside the camera's view.")
+                                f"the floor in the first {vf:.0f} m is outside the camera's view.")
     if ob and level != "blocked":
         text += (f" Nearest obstacle: {ob['class']} {ob['distance_m']:.1f} m ahead"
                  + ("." if ob["side"] == "ahead" else f", {abs(ob['lateral_m']):.1f} m to the {ob['side']}."))
