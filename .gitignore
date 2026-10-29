@@ -1,4 +1,10 @@
 .venv/
 data/**
 Explain.MD
-checkpoints\depth_best.pt
+__pycache__/
+# weights never go in git (forward slashes: git ignores "\" as a separator)
+checkpoints/*
+!checkpoints/finetune_log.csv
+*.pt
+*.onnx
+*.onnx.data
