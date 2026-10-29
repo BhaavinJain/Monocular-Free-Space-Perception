@@ -93,6 +93,19 @@ def paint_photo(img, pts, labels, pred_grid, cell, x_max, y_half, gt_grid=None, 
     return out.reshape(img.shape)
 
 
+def onnx_fn(sess, mean, std):
+    """
+    Wrap an ONNX Runtime session as a depth_fn / seg_fn: uint8 RGB (H, W, 3)
+    -> the model's (H, W) output. The normalisation lives here, in numpy, with
+    the mean/std saved next to each model by export_onnx.py.
+    """
+    mean, std = np.reshape(mean, (1, 1, 3)), np.reshape(std, (1, 1, 3))
+    def fn(img):
+        x = ((img / 255.0 - mean) / std).transpose(2, 0, 1)[None].astype(np.float32)
+        return sess.run(None, {"pixel_values": x})[0][0]
+    return fn
+
+
 def run(image, K, camera_height, depth_fn, seg_fn=None, drivable=None, preset="outdoor"):
     """
     image : uint8 (H, W, 3) RGB; K must already match this exact image.

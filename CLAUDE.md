@@ -53,6 +53,15 @@ not rewrite them:
 | `bev.py` | `build_grid`, `cell_index`, `visible_mask`, `inflate`, `lidar_to_bev` |
 | `planner.py` | `astar`, `pick_start_goal` |
 
+Phase 5 (torch-free unless noted):
+
+| File | Role |
+|---|---|
+| `pipeline.py` | `run()`: the whole pipeline for one image, models passed in as functions; also `upsample_rows`, `fuse_labels`, `paint_photo`, `onnx_fn`, `PRESETS` |
+| `check_pipeline.py` | M1 check (imports torch): `run()` grid == eval_freespace grid |
+| `export_onnx.py` | M2 (imports torch): ONNX export + parity; patches the Depth Anything head for dynamic shapes |
+| `benchmark.py` | M3: CPU latency + KITTI accuracy per input size |
+
 PyTorch-based (training / evaluation only — the server must NOT import these):
 `depth_model.py`, `segmenter.py`, `finetune_depth.py`.
 
@@ -118,13 +127,45 @@ depth map, the occupancy grid and a planned path, with the assumptions stated on
   3. otherwise use a horizontal FOV, default 70 deg, editable by the user:
      `fx = (W / 2) / tan(hfov / 2)`;
   4. `fy = fx`, `cx = W / 2`, `cy = H / 2`. Report which source was used.
-- Inputs: image (reject > 10 MB; downscale the long side to a size chosen from the
-  benchmark), `camera_height` (m, default 1.5), optional `hfov_deg`,
+- Inputs: image (reject > 10 MB; resize to the size chosen from the benchmark —
+  294 x 392, provisional, see "decisions after M3"), `camera_height` (m, default 1.5), optional `hfov_deg`,
   `drivable` in {none, road, road+sidewalk}, `preset` in {outdoor, indoor}.
 - Grid presets: outdoor = 20 m ahead x 20 m wide, 10 cm cells (KITTI setting);
   indoor = 10 m x 10 m, 5 cm cells.
 - Any resize, crop or pad of the image must update K accordingly.
 - Model licences: check the Hugging Face model cards and state them in the README.
+
+## Phase 5 — decisions after M3 (these override the M4 and M6 text where they differ)
+
+**Shipping size: 294 x 392 (H x W, 4:3), provisional, chosen on KITTI only.**
+Measured by `benchmark.py` (`report/benchmark.json`): the most accurate candidate
+within the 2 s budget on 2 threads. Its depth AbsRel of 0.056 is a KITTI-only
+number (10 frames of drive 0023, KITTI camera, h = 1.65 m) and must NEVER be
+presented as the app's accuracy on other cameras — not in the UI, not in the README.
+Laptop timings are not stable: the same configuration measured 0.59 s and 1.48 s
+in two runs as the CPU clock changed, so the latency shown in the UI must come from
+the M5 measurement on the Space.
+
+**Cross-camera accuracy is unmeasured.** Every KITTI test had fx between 565 and
+995 px; a 70 deg photo at 392 px wide has fx ~280 px, outside anything tested.
+On KITTI most of the error at other sizes is the camera-height scale, not the
+depth shape (s/s_oracle 0.86-0.98 by size), so the scale is what to watch.
+Planned for **Phase 6**: evaluate the pipeline on NYU Depth v2 and/or DIODE
+(different cameras, ground-truth depth, known intrinsics). Camera height for each
+image is derived by fitting the existing RANSAC plane (`ground_plane.fit_ground`)
+to the GROUND-TRUTH floor depth. Report depth AbsRel and free-space metrics, and
+revisit the input size with those numbers — including resizing so that fx falls
+inside the tested range. No phone validation set.
+
+**App structure:**
+- Default view: a gallery of a few KITTI val frames bundled with the app, with
+  their real K and h = 1.65 m. These results are backed by measurements.
+- Upload mode: clearly labelled "experimental", stating that camera height and FOV
+  are user-supplied and that accuracy on other cameras is not yet measured (after
+  Phase 6: "measured on NYU/DIODE: ...", with the numbers from that script).
+- M4 backend: add `GET /samples` (lists the gallery frames) and let `/predict`
+  accept either a sample id or an uploaded image.
+- The README must credit KITTI and state its licence for the bundled frames.
 
 ## Phase 5 — milestones (do them in order; each must pass before the next)
 
@@ -150,7 +191,8 @@ Time each stage (depth, segmentation, plane + grid + A*) on CPU with ONNX Runtim
 `report/benchmark.json`. The chosen latency is what the UI displays.
 
 **M4. FastAPI backend (`backend/`).**
-`GET /health`; `POST /predict` (multipart) returning JSON: status, refusal reason,
+`GET /health`; `GET /samples` (the bundled KITTI gallery frames); `POST /predict`
+(multipart: a sample id OR an uploaded image) returning JSON: status, refusal reason,
 scale, tilt, FOV used and its source, timings, depth and painted photo as PNG
 (base64), the grid as base64 uint8 + shape + cell size, and the path in metres
 (the frontend draws the grid on a canvas). Input validation and size caps. CORS for
@@ -165,7 +207,8 @@ Check: public `/health` responds; `/predict` works on the KITTI test image; imag
 is reported.
 
 **M6. React + Vite frontend (`web/`), on Vercel.**
-Upload; camera height (default 1.5 m, with a note that it sets the scale); FOV
+Default view: the KITTI sample gallery (measured results). Upload mode, labelled
+"experimental" (see "decisions after M3"): camera height (default 1.5 m, with a note that it sets the scale); FOV
 (pre-filled from EXIF when available, editable); drivable mode; preset. Panels:
 photo with the grid painted on it, depth map, BEV grid on a canvas with the path,
 camera marker and distance rings. Show: measured processing time, refusal reason

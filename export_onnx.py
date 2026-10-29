@@ -39,7 +39,7 @@ from depth_model import METRIC_CKPT, DepthModel, to_input_tensor
 from eval_depth import crop_bottom_centre
 from eval_freespace import KITTI_CAMERA_HEIGHT
 from kitti_loader import KittiRawDrive
-from pipeline import run
+from pipeline import onnx_fn, run
 from segmenter import SEG_CKPT, Segmenter
 
 EXTRA_HW = [(518, 392), (476, 630)]     # multiples of 14; portrait and 4:3-ish, unlike KITTI
@@ -94,14 +94,6 @@ def export(net, x, path, output_name):
     torch.onnx.export(net, (x,), path, dynamo=True, external_data=False,
                       input_names=["pixel_values"], output_names=[output_name],
                       dynamic_shapes=({2: dim, 3: dim},))
-
-
-def onnx_fn(sess, mean, std):
-    """uint8 RGB -> ONNX output (H, W), with the numpy preprocessing the server will use."""
-    def fn(img):
-        x = ((img / 255.0 - mean) / std).transpose(2, 0, 1)[None].astype(np.float32)
-        return sess.run(None, {"pixel_values": x})[0][0]
-    return fn
 
 
 def main():
