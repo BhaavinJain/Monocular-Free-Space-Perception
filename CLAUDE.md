@@ -61,6 +61,9 @@ Phase 5 (torch-free unless noted):
 | `check_pipeline.py` | M1 check (imports torch): `run()` grid == eval_freespace grid |
 | `export_onnx.py` | M2 (imports torch): ONNX export + parity; patches the Depth Anything head for dynamic shapes |
 | `benchmark.py` | M3: CPU latency + KITTI accuracy per input size |
+| `backend/app.py` | M4: FastAPI server (`uvicorn backend.app:app --port 7860` from the root) |
+| `backend/make_samples.py` | M4: builds the KITTI gallery (`python -m backend.make_samples`) |
+| `backend/check_api.py` | M4 check against a running server (`python -m backend.check_api`) |
 
 PyTorch-based (training / evaluation only — the server must NOT import these):
 `depth_model.py`, `segmenter.py`, `finetune_depth.py`.
@@ -123,10 +126,15 @@ depth map, the occupancy grid and a planned path, with the assumptions stated on
   start-up. They are not in git.
 - Intrinsics for uploaded photos (they have no calibration):
   1. apply the EXIF orientation first (Pillow `ImageOps.exif_transpose`);
-  2. if EXIF has `FocalLengthIn35mmFilm` (f35): `fx = f35 / 36 * image_width`;
-  3. otherwise use a horizontal FOV, default 70 deg, editable by the user:
-     `fx = (W / 2) / tan(hfov / 2)`;
-  4. `fy = fx`, `cx = W / 2`, `cy = H / 2`. Report which source was used.
+  2. a FOV the user sends (`hfov_deg`) wins: `fx = (W / 2) / tan(hfov / 2)`. The UI
+     pre-fills that field from EXIF, so an edited value must override EXIF;
+  3. else, if EXIF has `FocalLengthIn35mmFilm` (f35):
+     `fx = f35 * sqrt(W^2 + H^2) / 43.27` — the 35 mm-equivalent focal length is
+     defined by the frame DIAGONAL (43.27 mm), so this holds for any aspect ratio
+     and orientation;
+  4. else the default horizontal FOV of 70 deg, with the formula of step 2;
+  5. `fy = fx`, `cx = W / 2`, `cy = H / 2`. Report which source was used
+     (`user` / `exif_35mm` / `default_70`; samples: `kitti_calibration`).
 - Inputs: image (reject > 10 MB; resize to the size chosen from the benchmark —
   294 x 392, provisional, see "decisions after M3"), `camera_height` (m, default 1.5), optional `hfov_deg`,
   `drivable` in {none, road, road+sidewalk}, `preset` in {outdoor, indoor}.
@@ -166,6 +174,70 @@ inside the tested range. No phone validation set.
 - M4 backend: add `GET /samples` (lists the gallery frames) and let `/predict`
   accept either a sample id or an uploaded image.
 - The README must credit KITTI and state its licence for the bundled frames.
+
+## Phase 5 — M4 definitions (implemented in `pipeline.describe` / `backend/app.py`; M6 must follow)
+
+**Input sizing.** Every image goes through `pipeline.fit_to_size`: the largest crop
+of the target aspect ratio, ANCHORED AT THE BOTTOM and centred sideways (keeps
+the floor near the robot, drops sky or sides), then resized; K follows both.
+Landscape -> 294 x 392, portrait -> 392 x 294 (same pixel count, never rotated).
+Uploads must be at least 294 px on the short side (no upscaling).
+
+**Verdict** (computed on the raw grid, not the inflated one):
+- *corridor*: grid columns with |y| <= robot radius (the strip the robot's body sweeps).
+- `visible_from_m`: first grid row where every corridor cell is in the camera's
+  view (`bev.visible_mask`). The blind zone before it (~6 m on KITTI) is never seen.
+- `corridor_clear_m`: from that row forward, where the first non-FREE corridor
+  cell starts (x_max if none).
+- `nearest_obstacle`: nearest OCCUPIED cell (by forward row, then nearest the
+  centre line) within the corridor widened by 1 m each side (`SIDE_MARGIN`):
+  `distance_m` (near edge of the cell), `lateral_m`, `side` (ahead if inside the
+  corridor, else left/right), `class` = majority Cityscapes class of the points
+  that made the cell OCCUPIED when segmentation is on, else "obstacle". It can be
+  closer than `visible_from_m`: the floor there is unseen, but an object's upper
+  part can be.
+- `level` and `text`:
+  - `blocked` when the corridor's free run ends at an OCCUPIED cell: "Stop: <class> <d> m ahead"
+    (the blocking cell nearest the centre line);
+  - `clear`: "Clear from <a> m to <b> m ahead; the first <a> m are outside the camera's view."
+    plus, if there is one, "Nearest obstacle: <class> <d> m ahead, <y> m to the <side>.";
+  - `unknown`: the corridor is never fully visible, or nothing in it is known to be free;
+  - `refused`: "No floor found: <reason>" (no metric fields at all).
+- Also `path_reach_m` (farthest forward point of the A* path) and `path_length_m`.
+
+**Path ribbon** (`ribbon_px`): the A* path as a band 2 x robot radius wide: each
+path point offset by the radius perpendicular to the direction of travel, on the
+floor (z = 0), projected with K and the floor transform. One polygon (left edge
+out, right edge back) in model-image pixels. The path is NOT burned into
+`painted_png`; the frontend draws the ribbon.
+
+**Distance lines**: straight floor lines at fixed FORWARD distances (outdoor
+5/10/15/20 m, indoor 2.5/5/7.5/10 m; `PRESETS[...]["marks"]`). Photo: projected
+polylines (`distance_lines_px`, only the in-image part; lines inside the blind
+zone are empty). BEV map: horizontal lines at the same distances
+(`distance_marks_m`), drawn by the frontend. No rings.
+
+**Hover data** (`hover`): per pixel of the model image, `depth_cm` (uint16),
+`labels` (uint8: 0 ground, 1 obstacle, 2 hole, 3 ignored, after fusion) and
+`classes` (uint8 Cityscapes id, or null without segmentation), all base64
+row-major, plus `K` and `T_floor_cam`. The frontend back-projects the hovered
+pixel (`X = (u - cx) Z / fx`, `Y = (v - cy) Z / fy`), applies `T_floor_cam` to get
+forward / left / height, and looks up that point's BEV cell (and the reverse for
+hovering the map).
+
+**Gallery** (`backend/make_samples.py` -> `backend/samples/`, git-ignored, to the
+Hub in M5): 6 frames of drive 0023 taken from `benchmark.py`'s frame list. Each:
+the 375 x 500 bottom-centre 4:3 crop (fit_to_size turns it into exactly the
+input benchmark.py measured), its K, h = 1.65 m, the KITTI depth ground truth
+for the crop and the LiDAR grid (built as in `eval_freespace.py`, visibility for
+294 x 392). For a sample the server forces its real K, h and the outdoor preset,
+and measures LiDAR grid metrics and depth AbsRel live for that request.
+KITTI: CC BY-NC-SA 3.0, credited in `samples.json` and (M6) the README.
+
+**Known limitation (found in M4):** the plane-fit validity check accepted a crop of
+a building facade with balconies (no road): tilt 7.4 deg, scale 3.45, about 4x the
+0.87-0.89 of real KITTI frames. See `report/api_check.json`. Not fixed yet; any
+change to the validity check needs approval (core file).
 
 ## Phase 5 — milestones (do them in order; each must pass before the next)
 

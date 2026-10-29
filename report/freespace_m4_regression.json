@@ -1,0 +1,42 @@
+{
+  "tag": "m4_regression",
+  "weights": "checkpoints\\depth_best.pt",
+  "scale": "height",
+  "drivable": "road+sidewalk",
+  "robot_radius_m": 1.0,
+  "cell_m": 0.1,
+  "x_max_m": 20.0,
+  "y_half_m": 10.0,
+  "frames_refused": 0,
+  "refused": [],
+  "metrics": {
+    "all": {
+      "free_iou": 0.816205084407221,
+      "false_free_rate": 0.04430716624461685,
+      "missed_obstacle_rate": 0.08790962621607783,
+      "cells_evaluated": 202191,
+      "false_free_rate_inflated": 0.0030967038684024725
+    },
+    "0-10m": {
+      "free_iou": 0.885652434087789,
+      "false_free_rate": 0.013255681706767065,
+      "missed_obstacle_rate": 0.06897255382103867,
+      "cells_evaluated": 65943,
+      "false_free_rate_inflated": 2.7237566051097674e-05
+    },
+    "10-15m": {
+      "free_iou": 0.7958748353829318,
+      "false_free_rate": 0.04900374565039119,
+      "missed_obstacle_rate": 0.08080549667421973,
+      "cells_evaluated": 79064,
+      "false_free_rate_inflated": 0.006727430555555556
+    },
+    "15-20m": {
+      "free_iou": 0.7444583346037748,
+      "false_free_rate": 0.08827483196415235,
+      "missed_obstacle_rate": 0.1062997436935114,
+      "cells_evaluated": 52672,
+      "false_free_rate_inflated": 0.0034982508745627187
+    }
+  }
+}

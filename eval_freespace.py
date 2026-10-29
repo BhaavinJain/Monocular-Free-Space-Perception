@@ -17,8 +17,8 @@ from depth_model import DepthModel, METRIC_CKPT
 from eval_depth import crop_bottom_centre, val_drives
 from ground_plane import fit_ground
 from kitti_loader import KittiRawDrive
-from pipeline import (GREEN, GREY, MAGENTA, RED, UPSAMPLE, fuse_labels, paint_photo,
-                      upsample_rows)
+from pipeline import (GREEN, GREY, MAGENTA, RED, UPSAMPLE, counts, fuse_labels, paint_photo,
+                      ratios, upsample_rows)
 from planner import astar, pick_start_goal
 from pointcloud import classify_heights, floor_frame
 from scale import estimate_metric_scale
@@ -32,20 +32,6 @@ BANDS = ((0, 10), (10, 15), (15, 20))           # distance from the robot, metre
 ROBOT_RADIUS = 1.0                              # metres: KITTI car is ~1.8 m wide
 
 
-def counts(pred, gt, region):
-    """Cell counts needed for the three metrics, inside `region`."""
-    pf, gf, go = (pred == FREE) & region, (gt == FREE) & region, (gt == OCCUPIED) & region
-    return np.array([(pf & gf).sum(), (pf | gf).sum(), (pf & go).sum(), pf.sum(), go.sum()])
- 
- 
-def ratios(c):
-    inter, union, false_free, pred_free, gt_occ = c
-    return {"free_iou": inter / max(union, 1),
-            "false_free_rate": false_free / max(pred_free, 1),
-            "missed_obstacle_rate": false_free / max(gt_occ, 1),
-            "cells_evaluated": int(union + gt_occ - false_free)}
- 
- 
 def colour(grid, false_free=None):
     rgb = np.array([GREEN, RED, GREY])[grid]          # indexed by FREE, OCCUPIED, UNKNOWN
     if false_free is not None:

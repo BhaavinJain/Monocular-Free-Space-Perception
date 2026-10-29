@@ -8,3 +8,6 @@ checkpoints/*
 *.pt
 *.onnx
 *.onnx.data
+# KITTI frames (data: go to the Hub in M5) and phone photos (carry GPS in EXIF)
+backend/samples/
+backend/test_images/
