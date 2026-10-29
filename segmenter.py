@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from transformers import SegformerForSemanticSegmentation
 
 from depth_model import lead_normalisation, to_input_tensor
-from pointcloud import GROUND, OBSTACLE
+from pipeline import fuse_labels      # re-exported: defined once, in the torch-free pipeline
 
 SEG_CKPT = "nvidia/segformer-b0-finetuned-cityscapes-1024-1024"
 
@@ -38,14 +38,3 @@ class Segmenter:
         logits = F.interpolate(logits, size=image_rgb.shape[:2], mode="bilinear",
                                align_corners=False)
         return logits.argmax(1)[0].cpu().numpy().astype(np.uint8)
-
-
-def fuse_labels(labels, semantic, drivable_ids):
-    """
-    labels   : (N,) height labels from classify_heights
-    semantic : (N,) class id of the pixel each point came from
-    Flat points whose class is not drivable become obstacles.
-    """
-    out = labels.copy()
-    out[(labels == GROUND) & ~np.isin(semantic, drivable_ids)] = OBSTACLE
-    return out

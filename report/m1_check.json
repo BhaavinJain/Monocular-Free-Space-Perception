@@ -1,0 +1,41 @@
+{
+  "drive": "0023",
+  "frame": 10,
+  "image_hw": [
+    350,
+    1218
+  ],
+  "none": {
+    "status": "ok",
+    "scale_equal": true,
+    "grid_equal": true,
+    "inflated_equal": true,
+    "path_equal": true,
+    "scale": 0.9853919690435343,
+    "tilt_deg": 0.3022825829929132,
+    "path_cells": 144,
+    "timings_s": {
+      "depth": 7.00005330145359e-07,
+      "seg": 0.0,
+      "geometry": 0.2736601999786217
+    },
+    "passed": true
+  },
+  "road+sidewalk": {
+    "status": "ok",
+    "scale_equal": true,
+    "grid_equal": true,
+    "inflated_equal": true,
+    "path_equal": true,
+    "scale": 0.9853919690435343,
+    "tilt_deg": 0.3022825829929132,
+    "path_cells": 144,
+    "timings_s": {
+      "depth": 1.6999838408082724e-06,
+      "seg": 7.00005330145359e-07,
+      "geometry": 0.2350565000087954
+    },
+    "passed": true
+  },
+  "passed": true
+}

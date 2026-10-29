@@ -10,46 +10,28 @@ import matplotlib.pyplot as plt
  
 from matplotlib.patches import Circle, Patch
  
-from bev import (FREE, OCCUPIED, UNKNOWN, build_grid, cell_centres, cell_index,
+from bev import (FREE, OCCUPIED, UNKNOWN, build_grid, cell_centres,
                  inflate, lidar_to_bev)
 from camera import backproject, lidar_to_depth_map, project, transform_points
 from depth_model import DepthModel, METRIC_CKPT
 from eval_depth import crop_bottom_centre, val_drives
 from ground_plane import fit_ground
 from kitti_loader import KittiRawDrive
+from pipeline import (GREEN, GREY, MAGENTA, RED, UPSAMPLE, fuse_labels, paint_photo,
+                      upsample_rows)
 from planner import astar, pick_start_goal
-from pointcloud import IGNORE, classify_heights, floor_frame
+from pointcloud import classify_heights, floor_frame
 from scale import estimate_metric_scale
-from segmenter import Segmenter, fuse_labels
+from segmenter import Segmenter
  
 KITTI_CAMERA_HEIGHT = 1.65
 # Grid for KITTI: the camera sees no road closer than ~5.9 m, so the
 # blueprint's indoor 10 m x 10 m grid would be mostly blind spot here.
 CELL, X_MAX, Y_HALF = 0.10, 20.0, 10.0          # metres
 BANDS = ((0, 10), (10, 15), (15, 20))           # distance from the robot, metres
-UPSAMPLE = 4    # rows per image row before back-projection (see upsample_rows)
 ROBOT_RADIUS = 1.0                              # metres: KITTI car is ~1.8 m wide
- 
- 
-def upsample_rows(depth, K, k=UPSAMPLE):
-    """
-    One image row covers a strip of road about distance^2 / (fy * h) long:
-    8 cm at 10 m but 34 cm at 20 m. With 10 cm cells, far rows leave gaps of
-    UNKNOWN cells between them even when the depth is perfect. Interpolating
-    k rows between each pair of real rows (and scaling K to match) puts the
-    points ~8 cm apart at 20 m.
- 
-    K must change because the new rows are k times denser: fy -> k*fy, and
-    cy moves so that pixel CENTRES still line up (new row v' sits at old
-    row (v' + 0.5)/k - 0.5).
-    """
-    H, W = depth.shape
-    Kk = K.copy()
-    Kk[1, 1] = k * K[1, 1]
-    Kk[1, 2] = k * (K[1, 2] + 0.5) - 0.5
-    return cv2.resize(depth, (W, k * H), interpolation=cv2.INTER_LINEAR), Kk
- 
- 
+
+
 def counts(pred, gt, region):
     """Cell counts needed for the three metrics, inside `region`."""
     pf, gf, go = (pred == FREE) & region, (gt == FREE) & region, (gt == OCCUPIED) & region
@@ -64,35 +46,11 @@ def ratios(c):
             "cells_evaluated": int(union + gt_occ - false_free)}
  
  
-GREEN, RED, GREY, MAGENTA = (0.2, 0.8, 0.2), (0.9, 0.1, 0.1), (0.8, 0.8, 0.8), (1.0, 0.0, 1.0)
- 
- 
 def colour(grid, false_free=None):
     rgb = np.array([GREEN, RED, GREY])[grid]          # indexed by FREE, OCCUPIED, UNKNOWN
     if false_free is not None:
         rgb[false_free] = MAGENTA
     return rgb
- 
- 
-def paint_photo(img, pts, labels, pred_grid, gt_grid, alpha=0.45):
-    """
-    Tint every pixel by the state of the grid cell its OWN 3D point falls in:
-    road pixels show where the grid says free, car pixels where it says
-    occupied, and magenta marks pixels whose cell was called free although
-    the LiDAR says occupied. Pixels whose point is ignored (sky, treetops,
-    anything above 2 m) or outside the grid keep their original colour.
-    """
-    ix, iy, ok = cell_index(pts, CELL, X_MAX, Y_HALF)
-    ok &= labels != IGNORE
-    p = np.full(len(pts), -1); g = np.full(len(pts), -1)
-    p[ok], g[ok] = pred_grid[ix[ok], iy[ok]], gt_grid[ix[ok], iy[ok]]
-    tint, use = np.zeros((len(pts), 3)), np.zeros(len(pts), bool)
-    for mask, rgb in ((p == FREE, GREEN), (p == OCCUPIED, RED),
-                      ((p == FREE) & (g == OCCUPIED), MAGENTA)):
-        tint[mask], use = rgb, use | mask
-    out = img.reshape(-1, 3) / 255.0
-    out[use] = (1 - alpha) * out[use] + alpha * tint[use]
-    return out.reshape(img.shape)
  
  
 def main():
@@ -173,7 +131,7 @@ def main():
                 px_labels = classify_heights(px)
                 if seg is not None:
                     px_labels = fuse_labels(px_labels, sem.reshape(-1), drivable_ids)
-                painted = paint_photo(img, px, px_labels, pred_grid, gt_grid)
+                painted = paint_photo(img, px, px_labels, pred_grid, CELL, X_MAX, Y_HALF, gt_grid)
                 start, goal = pick_start_goal(pred_inf)
                 path = astar(pred_inf, start, goal) if start is not None else None
                 worst.append((n_ff, name, f, painted, pred_grid, gt_grid, path, T, K))
