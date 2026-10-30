@@ -122,9 +122,13 @@ depth map, the occupancy grid and a planned path, with the assumptions stated on
 
 - Backend: FastAPI. Frontend: React + Vite, deployed on Vercel.
 - Inference: ONNX Runtime on CPU. No PyTorch in the server or its Docker image.
-- Backend hosting: Hugging Face Spaces, Docker SDK (app listens on port 7860).
-- ONNX model files live in a Hugging Face Hub model repo; the Space downloads them at
-  start-up. They are not in git.
+- Backend hosting: **Azure Container Apps** (Azure for Students), scale-to-zero, image
+  pulled from **ghcr.io**; app listens on port 7860. (Was: Hugging Face Docker Space —
+  blocked in M5: HF now requires a PRO subscription for Docker Spaces, see M5 status.)
+- ONNX model files and the gallery live in the PUBLIC Hugging Face Hub model repo
+  `BhaavinJain/monocular-freespace-models`; the Docker image downloads them at BUILD
+  time, pinned to one repo commit (`MODEL_REVISION` in `space/Dockerfile`), so a cold
+  start never downloads models. They are not in git.
 - Intrinsics for uploaded photos (they have no calibration):
   1. apply the EXIF orientation first (Pillow `ImageOps.exif_transpose`);
   2. a FOV the user sends (`hfov_deg`) wins: `fx = (W / 2) / tan(hfov / 2)`. The UI
@@ -153,7 +157,7 @@ number (10 frames of drive 0023, KITTI camera, h = 1.65 m) and must NEVER be
 presented as the app's accuracy on other cameras — not in the UI, not in the README.
 Laptop timings are not stable: the same configuration measured 0.59 s and 1.48 s
 in two runs as the CPU clock changed, so the latency shown in the UI must come from
-the M5 measurement on the Space.
+the M5 measurement on the deployed service (Azure Container Apps).
 
 **Cross-camera accuracy is unmeasured.** Every KITTI test had fx between 565 and
 995 px; a 70 deg photo at 392 px wide has fx ~280 px, outside anything tested.
@@ -291,22 +295,45 @@ localhost and the Vercel domain.
 Check: KITTI frame with h = 1.65 and hfov = 80 deg gives a sensible grid; a photo of
 a wall returns a refusal with its reason; oversized and non-image uploads are rejected.
 
-**M5. Docker + Hugging Face Space.**
+**M5. Docker + hosting (Azure Container Apps).**
 `python:3.12-slim`, onnxruntime, numpy, opencv-python-headless, pillow, fastapi,
 uvicorn, huggingface_hub. Run locally first, then deploy.
 Check: public `/health` responds; `/predict` works on the KITTI test image; image size
-is reported.
+is reported; cold start and per-request latency (median, p90 over the 6 samples,
+warm-up excluded) measured on the deployed service -> `report/space_check.json`
+(the numbers the UI displays); hardware reported.
+
+*M5 status (paused, waiting for the owner's Azure for Students account):*
+- DONE — model repo `BhaavinJain/monocular-freespace-models` published (public,
+  commit `d272633e`): `depth.onnx`, `segformer.onnx`, their JSONs, the 6-frame gallery,
+  model card with licences (`space/MODEL_CARD.md`; everything is non-commercial:
+  SegFormer NVIDIA licence, KITTI and Virtual KITTI 2 CC BY-NC-SA 3.0).
+- DONE — local image (`docker build -f space/Dockerfile -t freespace:local .` from the
+  root): runs as uid 1000, no torch; 284 MB compressed, ~630 MB unpacked; `/health`
+  ready 2-3.5 s after `docker run`; memory 261 MB idle, **633 MB after a 12 MP upload**,
+  so the host needs >= 1 GB. `backend/check_api.py` against the container: all checks
+  pass (`report/docker/api_check.json`). It caught a Linux-only bug (int64 labels vs
+  opencv-python-headless), fixed in `pipeline.py`.
+- BLOCKED — Hugging Face Space: `deploy.py --space` got 402, "hosting Gradio and Docker
+  Spaces on free cpu-basic requires a PRO subscription". No Space was created.
+  `space/README.md` (Space card) and `deploy.py --space` are now unused.
+- TODO (Azure): push the image to ghcr.io; create the Container App (scale-to-zero,
+  port 7860, >= 1 GB memory, `ORT_THREADS` = the vCPUs given, `CORS_ORIGINS` for M6);
+  adapt `space/space_check.py` (it uses HF's `restart_space` / `space_info`: cold start
+  must instead be measured from scale-to-zero, which on Azure includes pulling the
+  284 MB image); run `check_api.py` and the latency check against the public URL.
 
 **M6. React + Vite frontend (`web/`), on Vercel.**
 Default view: the KITTI sample gallery (measured results). Upload mode, labelled
 "experimental" (see "decisions after M3"): camera height (default 1.5 m, with a note that it sets the scale); FOV
 (pre-filled from EXIF when available, editable); drivable mode; preset. Panels:
 photo with the grid painted on it, depth map, BEV grid on a canvas with the path,
-camera marker and distance rings. Show: measured processing time, refusal reason
-when the plane fit fails, a "waking up" state for Space cold starts, and the
+camera marker and distance lines (not rings, see "M4 definitions"). Show: measured
+processing time, refusal reason when the plane fit fails, a "waking up" state for
+cold starts (Azure scale-to-zero), and the
 assumptions (camera height sets scale, FOV source, flat floor, trained on German
 streets). API URL from `VITE_API_URL`.
-Check: works locally against the local API, then on Vercel against the Space.
+Check: works locally against the local API, then on Vercel against the Azure service.
 
 **M7. Polish (optional, only after M6 works end to end).**
 Mobile layout, webcam capture, `/predict/sequence`.
