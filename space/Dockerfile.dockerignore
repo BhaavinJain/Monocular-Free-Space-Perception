@@ -1,0 +1,13 @@
+# Local builds use the project root as context; send only what the image needs
+# (never .venv, data/, checkpoints/). The Space's own repo holds only these files.
+*
+!space/requirements.txt
+!pipeline.py
+!bev.py
+!camera.py
+!ground_plane.py
+!planner.py
+!pointcloud.py
+!scale.py
+!metrics.py
+!backend/app.py

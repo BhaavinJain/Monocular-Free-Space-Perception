@@ -1,0 +1,9 @@
+# Server only — the exact versions backend/check_api.py passed with in M4. No torch.
+onnxruntime==1.31.1
+numpy==2.5.3
+opencv-python-headless==5.0.0.93
+pillow==12.3.0
+fastapi==0.162.0
+uvicorn==0.54.0
+python-multipart==0.0.32
+huggingface_hub==1.33.0

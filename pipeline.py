@@ -275,7 +275,9 @@ def run(image, K, camera_height, depth_fn, seg_fn=None, drivable=None, preset="o
     sem = sem_k = None
     if ids is not None:
         ts = time.perf_counter()
-        sem = seg_fn(image)
+        # uint8: the ONNX argmax returns int64, which Linux opencv-python-headless
+        # cannot resize (Windows opencv-python could, so only the M5 container caught it)
+        sem = np.asarray(seg_fn(image), dtype=np.uint8)
         seg_time = time.perf_counter() - ts
         sem_k = cv2.resize(sem, (W, UPSAMPLE * H), interpolation=cv2.INTER_NEAREST).reshape(-1)
         labels = fuse_labels(labels, sem_k, ids)

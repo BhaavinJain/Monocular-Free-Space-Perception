@@ -111,6 +111,7 @@ otherwise far rows leave gaps of UNKNOWN cells) and `paint_photo`.
    UI or README must come from a script in this repo.
 6. After each milestone, summarise in plain words: what was built, how it was checked,
    what the numbers were, what is still unverified.
+7. Commit messages: no `Co-Authored-By` trailers and no mention of Claude.
 
 ## Phase 5 — goal
 
