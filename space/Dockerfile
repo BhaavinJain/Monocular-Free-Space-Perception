@@ -3,6 +3,8 @@
 # space/deploy.py copies this file to the Space's root and every other file to the
 # same relative path it has here, so the COPY lines work in both places.
 FROM python:3.12-slim
+# links the ghcr.io package to the GitHub repo
+LABEL org.opencontainers.image.source=https://github.com/BhaavinJain/Monocular-Free-Space-Perception
 
 # HF Spaces run the container as uid 1000; own everything as that user, never root
 RUN useradd -m -u 1000 user

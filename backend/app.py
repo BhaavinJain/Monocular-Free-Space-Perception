@@ -57,8 +57,28 @@ for name in ("depth", "segformer"):
     FNS.append(onnx_fn(ort.InferenceSession(os.path.join(MODEL_DIR, f"{name}.onnx"), so,
                                             providers=["CPUExecutionProvider"]), meta["mean"], meta["std"]))
 DEPTH_FN, SEG_FN = FNS
-# A 2-vCPU Space cannot run two requests at once without both getting slower
+# A 2-vCPU host cannot run two requests at once without both getting slower
 LOCK = threading.Lock()
+
+# What the host really gives us. Inside a container os.cpu_count() reports the
+# HOST machine's cores, not our share; the cgroup CPU quota / period is the actual
+# vCPU limit. cgroup v2 keeps it in cpu.max ("quota period", quota "max" = none),
+# v1 (e.g. Docker Desktop on WSL2) in two files (quota -1 = none).
+# Both stay None where the files don't exist (Windows).
+CPU_MODEL = CPU_LIMIT = None
+if os.path.exists("/proc/cpuinfo"):
+    with open("/proc/cpuinfo") as fh:
+        CPU_MODEL = next((l.split(":", 1)[1].strip() for l in fh if l.startswith("model name")), None)
+if os.path.exists("/sys/fs/cgroup/cpu.max"):
+    with open("/sys/fs/cgroup/cpu.max") as fh:
+        quota, period = fh.read().split()
+elif os.path.exists("/sys/fs/cgroup/cpu/cpu.cfs_quota_us"):
+    with open("/sys/fs/cgroup/cpu/cpu.cfs_quota_us") as fq, open("/sys/fs/cgroup/cpu/cpu.cfs_period_us") as fp:
+        quota, period = fq.read().strip(), fp.read().strip()
+else:
+    quota = period = None
+if quota not in (None, "max", "-1"):
+    CPU_LIMIT = int(quota) / int(period)
 
 SAMPLES = {}
 if os.path.exists(os.path.join(SAMPLE_DIR, "samples.json")):
@@ -96,7 +116,8 @@ def hfov(K, w):
 @app.get("/health")
 def health():
     return {"status": "ok", "models_loaded": True, "input_hw": list(MODEL_HW), "threads": THREADS,
-            "onnxruntime": ort.__version__, "samples": len(SAMPLES)}
+            "onnxruntime": ort.__version__, "samples": len(SAMPLES),
+            "cpu_model": CPU_MODEL, "cpu_limit": CPU_LIMIT, "host_cpu_count": os.cpu_count()}
 
 
 @app.get("/samples")

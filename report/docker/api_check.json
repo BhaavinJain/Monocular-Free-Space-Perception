@@ -14,7 +14,10 @@
         ],
         "threads": 2,
         "onnxruntime": "1.31.1",
-        "samples": 6
+        "samples": 6,
+        "cpu_model": "13th Gen Intel(R) Core(TM) i7-13650HX",
+        "cpu_limit": 2.0,
+        "host_cpu_count": 20
       }
     },
     {
@@ -47,7 +50,7 @@
       },
       "scale": 0.865150409499535,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: terrain 5.3 m ahead, 1.9 m to the right.",
-      "total_ms": 687
+      "total_ms": 1203
     },
     {
       "name": "sample 0023_000107",
@@ -63,7 +66,7 @@
       },
       "scale": 0.8834488251238575,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 627
+      "total_ms": 1139
     },
     {
       "name": "sample 0023_000210",
@@ -79,7 +82,7 @@
       },
       "scale": 0.8841676830028209,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.4 m ahead, 1.9 m to the right.",
-      "total_ms": 589
+      "total_ms": 1072
     },
     {
       "name": "sample 0023_000262",
@@ -95,7 +98,7 @@
       },
       "scale": 0.8795205906257919,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 576
+      "total_ms": 1024
     },
     {
       "name": "sample 0023_000365",
@@ -111,7 +114,7 @@
       },
       "scale": 0.8719552732128012,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.2 m ahead, 1.9 m to the right.",
-      "total_ms": 573
+      "total_ms": 997
     },
     {
       "name": "sample 0023_000468",
@@ -127,7 +130,7 @@
       },
       "scale": 0.8792079389882294,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 586
+      "total_ms": 1004
     },
     {
       "name": "upload full KITTI frame, h=1.65, hfov=80: sensible grid",
@@ -148,7 +151,7 @@
         "model_hfov_deg": 37.3,
         "fov_source": "user"
       },
-      "total_ms": 632
+      "total_ms": 894
     },
     {
       "name": "EXIF orientation 6 + f35: portrait, fx from the diagonal",
