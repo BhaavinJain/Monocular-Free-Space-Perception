@@ -71,7 +71,11 @@ export default function About() {
           <Big value={`${t.server_s.toFixed(2)} s`}
                measured={`${t.requests} requests on the live server (${t.hardware})${b ? `; browser times ${b.measured_on}` : ""}.`}
                compare={`${t.upload_server_s.toFixed(2)} s for a 12-megapixel upload. After a quiet period the server sleeps; waking it takes about ${t.cold_start_s.toFixed(0)} s.`
-                        + (b ? ` In the browser, from click to picture: about ${b.gallery_s.toFixed(1)} s for an example and ${b.upload_s.toFixed(1)} s for a ${b.upload_mb} MB phone photo.` : "")}>
+                        + (b ? ` In the browser, from click to picture: ${b.gallery.browser_s.map((x) => x.toFixed(1)).join(" and ")} s for an example (${b.gallery.n} runs)`
+                               + Object.values(b.uploads).map((u) => u.resized
+                                   ? `, ${u.browser_median_s.toFixed(1)} s for a ${u.original_mb.toFixed(1)} MB phone JPEG (shrunk to ${u.sent_mb.toFixed(2)} MB in the browser before sending; median of ${u.n})`
+                                   : `, ${u.browser_median_s.toFixed(1)} s for a ${u.original_mb.toFixed(1)} MB HEIC photo, sent unshrunk because browsers cannot decode HEIC`).join("")
+                               + "." : "")}>
             processing time on the server per photo (the median: half of the requests were faster).
           </Big>
           <Big value={`${R.refusal.refused} of ${R.refusal.total}`} measured={`${R.refusal.what}.`}>

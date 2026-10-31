@@ -14,6 +14,8 @@ import json
 import os
 import shutil
 
+import numpy as np
+
 # what each failure picture shows, in words (keyed by frame: see the docstring)
 CAPTIONS = {
     195: "The far ends of the parked cars, near the far edge of the map, were called free (yellow): "
@@ -40,8 +42,29 @@ def main():
     f_ship, f_geom = L("freespace_ship_road_sidewalk_onnx.json"), L("freespace_ship_geometry_onnx.json")
     f_full = L("freespace_finetuned_road_sidewalk.json")
     space, azure = L("space_check.json"), L("azure/api_check.json")
-    web = L("web_timing.json") if os.path.exists(os.path.join(a.report, "web_timing.json")) else None
+    raw = L("web_timing_raw.json") if os.path.exists(os.path.join(a.report, "web_timing_raw.json")) else None
     docker = L("docker/api_check.json")
+
+    web = None
+    if raw:
+        # the "Copy timing log" output of the live page, unchanged. The page wakes the
+        # server on load, so only its first run can hit a cold start: it counts as one
+        # when its browser-minus-server time exceeds the measured cold start, and is
+        # then reported on its own, outside the medians
+        runs, cold_s = raw["runs"], space["cold_start"]["zero_to_health_s"]["median"]
+        cold = runs[0] if runs[0]["browser_ms"] - runs[0]["server_ms"] > 1000 * cold_s else None
+        warm = [r for r in runs if r is not cold]
+        stat = lambda rs: {"n": len(rs), "browser_median_s": float(np.median([r["browser_ms"] for r in rs])) / 1000,
+                           "browser_s": [r["browser_ms"] / 1000 for r in rs],
+                           "server_median_s": float(np.median([r["server_ms"] for r in rs])) / 1000}
+        uploads = {}
+        for r in warm:
+            if r["what"].startswith("upload "):
+                uploads.setdefault(r["what"][7:], []).append(r)
+        web = {"measured_on": raw["measured"], "cold_start_run": cold,
+               "gallery": stat([r for r in warm if r["what"].startswith("sample ")]),
+               "uploads": {k: {**stat(v), "original_mb": v[0]["original_mb"], "sent_mb": v[0]["sent_mb"],
+                               "resized": v[0]["resized"]} for k, v in uploads.items()}}
 
     abs_rel = d_ship["height"]["abs_rel"]
     m, mf = f_ship["metrics"], f_full["metrics"]

@@ -450,6 +450,19 @@ assumptions (camera height sets scale, FOV source, flat floor, trained on German
 streets). API URL from `VITE_API_URL`.
 Check: works locally against the local API, then on Vercel against the Azure service.
 
+*M6 browser times* (live site, owner's Chrome 156 / Windows, India -> East Asia,
+2026-10-31; raw log `report/web_timing_raw.json`, derived by `web/make_results.py`):
+
+| Run | Browser, click to picture | Server | n |
+|---|---|---|---|
+| Gallery sample | 2.4 s and 5.1 s (5.1 s unexplained: server time normal, so network) | 0.54 s median | 2 |
+| Phone JPEG 3.58 MB, shrunk in the browser to 0.19 MB (960 x 1280) | **2.2 s** median (2.1, 2.3) | 0.33 s | 2 |
+| Phone HEIC 2.65 MB, sent unshrunk | 8.0 s | 0.97 s | 1 |
+
+Before the browser shrink the same JPEG took 10.5 s (0.72 s on the server). No cold
+start in the log (the first run's browser-minus-server time, 1.8 s, is below the 4.3 s
+cold start). Not measured in this log: the KITTI PNG upload; only 2 of 6 gallery frames.
+
 *M6 design (after the first live check):* dark theme only; colour-blind-safe palette
 everywhere: free blue #2E6BE6, occupied orange #E8770E, false-free yellow #F0E442
 (evaluation pictures), path dark #15181D at ~50% with a white edge

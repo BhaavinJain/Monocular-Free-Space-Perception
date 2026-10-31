@@ -1,0 +1,15 @@
+{
+ "measured": "2026-10-31, live site, by the owner in Chrome 156 on Windows, from India (server in East Asia)",
+ "page": "https://monocular-freespace.vercel.app",
+ "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "runs": [
+  {"what": "upload IMG_4328.JPEG", "original_mb": 3.578, "sent_mb": 0.193, "resized": true, "sent_wh": [960, 1280], "f35_mm": 26,
+   "status": "refused", "server_ms": 316.3366720000056, "browser_ms": 2107.39999999851},
+  {"what": "sample 0023_000262", "status": "ok", "server_ms": 550.0136429999998, "browser_ms": 2377.2000000029802},
+  {"what": "sample 0023_000005", "status": "ok", "server_ms": 533.0661879999639, "browser_ms": 5107.20000000298},
+  {"what": "upload IMG_4328.JPEG", "original_mb": 3.578, "sent_mb": 0.193, "resized": true, "sent_wh": [960, 1280], "f35_mm": 26,
+   "status": "refused", "server_ms": 336.65271999996094, "browser_ms": 2259.5},
+  {"what": "upload IMG_4330.HEIC", "original_mb": 2.646, "sent_mb": 2.646, "resized": false, "sent_wh": null, "f35_mm": null,
+   "status": "refused", "server_ms": 966.839661999984, "browser_ms": 7967.60000000149}
+ ]
+}

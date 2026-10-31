@@ -68,7 +68,44 @@
     "cold_start_s": 4.280228000003262,
     "requests": 18,
     "hardware": "Azure Container Apps, 2 vCPU, East Asia",
-    "browser": null
+    "browser": {
+      "measured_on": "2026-10-31, live site, by the owner in Chrome 156 on Windows, from India (server in East Asia)",
+      "cold_start_run": null,
+      "gallery": {
+        "n": 2,
+        "browser_median_s": 3.7422000000029803,
+        "browser_s": [
+          2.37720000000298,
+          5.1072000000029805
+        ],
+        "server_median_s": 0.5415399154999818
+      },
+      "uploads": {
+        "IMG_4328.JPEG": {
+          "n": 2,
+          "browser_median_s": 2.183449999999255,
+          "browser_s": [
+            2.10739999999851,
+            2.2595
+          ],
+          "server_median_s": 0.32649469599998326,
+          "original_mb": 3.578,
+          "sent_mb": 0.193,
+          "resized": true
+        },
+        "IMG_4330.HEIC": {
+          "n": 1,
+          "browser_median_s": 7.96760000000149,
+          "browser_s": [
+            7.96760000000149
+          ],
+          "server_median_s": 0.966839661999984,
+          "original_mb": 2.646,
+          "sent_mb": 2.646,
+          "resized": false
+        }
+      }
+    }
   },
   "refusal": {
     "refused": 6,

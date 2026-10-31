@@ -16,7 +16,7 @@
         "onnxruntime": "1.31.1",
         "samples": 6,
         "cpu_model": "13th Gen Intel(R) Core(TM) i7-13650HX",
-        "cpu_limit": 2.0,
+        "cpu_limit": null,
         "host_cpu_count": 20
       }
     },
@@ -49,8 +49,8 @@
         "false_free_rate_inflated": 0.0
       },
       "scale": 0.865150409499535,
-      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: terrain 5.3 m ahead, 1.9 m to the right.",
-      "total_ms": 1044
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: grass or soil 5.3 m ahead, 1.9 m to the right.",
+      "total_ms": 760
     },
     {
       "name": "sample 0023_000107",
@@ -66,7 +66,7 @@
       },
       "scale": 0.8834488251238575,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 1015
+      "total_ms": 660
     },
     {
       "name": "sample 0023_000210",
@@ -82,7 +82,7 @@
       },
       "scale": 0.8841676830028209,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.4 m ahead, 1.9 m to the right.",
-      "total_ms": 1164
+      "total_ms": 607
     },
     {
       "name": "sample 0023_000262",
@@ -98,7 +98,7 @@
       },
       "scale": 0.8795205906257919,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 1053
+      "total_ms": 611
     },
     {
       "name": "sample 0023_000365",
@@ -114,7 +114,7 @@
       },
       "scale": 0.8719552732128012,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.2 m ahead, 1.9 m to the right.",
-      "total_ms": 1064
+      "total_ms": 597
     },
     {
       "name": "sample 0023_000468",
@@ -130,7 +130,7 @@
       },
       "scale": 0.8792079389882294,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 993
+      "total_ms": 578
     },
     {
       "name": "upload full KITTI frame, h=1.65, hfov=80: sensible grid",
@@ -151,7 +151,7 @@
         "model_hfov_deg": 37.3,
         "fov_source": "user"
       },
-      "total_ms": 877
+      "total_ms": 637
     },
     {
       "name": "EXIF orientation 6 + f35: portrait, fx from the diagonal",
@@ -344,6 +344,14 @@
       ]
     },
     {
+      "name": "phone photo IMG_4328.JPEG resized to 960x1280 + f35_mm: same fx as the original",
+      "passed": true,
+      "original_fx": 294.43032123873354,
+      "resized_fx": 294.43032123873354,
+      "resized_mb": 0.204941,
+      "without_f35_source": "default_70"
+    },
+    {
       "name": "upper-image KITTI crops are refused (pipeline level)",
       "passed": true,
       "crops": [
@@ -428,7 +436,20 @@
       "scale": null,
       "tilt_deg": 10.006551490804013,
       "verdict": "No floor found: camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
-      "server_ms": 734.471966000001
+      "server_ms": 748.4049180000021,
+      "resized_upload": {
+        "file_mb": 0.205,
+        "size": [
+          960,
+          1280
+        ],
+        "f35_mm": 26.0,
+        "fx": 294.43032123873354,
+        "fov_source": "exif_35mm",
+        "status": "refused",
+        "scale": null,
+        "server_ms": 404.3228629999973
+      }
     },
     "IMG_4330.HEIC": {
       "http": 200,
@@ -464,7 +485,7 @@
       "scale": null,
       "tilt_deg": 13.396322624650097,
       "verdict": "No floor found: camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
-      "server_ms": 1248.8291119999958
+      "server_ms": 955.1610030000006
     }
   }
 }
