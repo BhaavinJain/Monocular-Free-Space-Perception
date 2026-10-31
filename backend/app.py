@@ -244,12 +244,7 @@ def predict(file: UploadFile | None = File(None),
                    grid_inflated=grid_json(out["grid_inflated"], P),
                    path_m=None if out["path_m"] is None else np.round(out["path_m"], 3).tolist(),
                    verdict=out["verdict"], ribbon_px=out["ribbon_px"],
-                   distance_lines_px=out["distance_lines_px"], distance_marks_m=list(P["marks"]),
-                   hover={"shape": [h, w], "depth_cm": b64(np.clip(d * 100, 0, 65535).astype(np.uint16)),
-                          "labels": b64(out["px_labels"].astype(np.uint8)),
-                          "label_codes": {"0": "ground", "1": "obstacle", "2": "hole", "3": "ignored"},
-                          "classes": None if out["sem"] is None else b64(out["sem"].astype(np.uint8)),
-                          "K": K_m.tolist(), "T_floor_cam": out["T_floor_cam"].tolist()})
+                   distance_lines_px=out["distance_lines_px"], distance_marks_m=list(P["marks"]))
         if is_sample:                       # measured against KITTI ground truth, for THIS request
             gt = s["lidar_grid"]
             known = gt != UNKNOWN
