@@ -88,7 +88,7 @@
       "image": "failures/bev_ship_road_sidewalk_onnx_0023_195.png",
       "frame": 195,
       "false_free_cells": 143,
-      "caption": "The far ends of the parked cars, near the far edge of the map, were called free (magenta): far away, object outlines blur into the road."
+      "caption": "The far ends of the parked cars, near the far edge of the map, were called free (yellow): far away, object outlines blur into the road."
     },
     {
       "image": "failures/bev_ship_road_sidewalk_onnx_0023_115.png",
@@ -100,7 +100,7 @@
       "image": "failures/bev_ship_road_sidewalk_onnx_0023_465.png",
       "frame": 465,
       "false_free_cells": 128,
-      "caption": "Two mistakes at once: car and hedge edges far ahead called free (magenta), and a strip of open road on the right wrongly marked blocked (red where the laser saw free) - the safe kind of mistake."
+      "caption": "Two mistakes at once: car and hedge edges far ahead called free (yellow), and a strip of open road on the right wrongly marked blocked (orange where the laser saw free) - the safe kind of mistake."
     }
   ]
 }

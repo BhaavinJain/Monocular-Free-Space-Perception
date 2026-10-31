@@ -29,7 +29,7 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 import requests
-from PIL import Image
+from PIL import Image, ImageOps
 
 from bev import UNKNOWN
 from kitti_loader import KittiRawDrive
@@ -179,6 +179,30 @@ def main():
         check("HEIC and JPEG: same model size and intrinsics",
               j["input"]["model_hw"] == h["input"]["model_hw"] and abs(j["camera"]["fx"] / h["camera"]["fx"] - 1) < 1e-9,
               jpeg_fx=j["camera"]["fx"], heic_fx=h["camera"]["fx"], model_hw=h["input"]["model_hw"])
+    # the browser uploads phone JPEGs shrunk to 1280 px on the long side, re-encoded
+    # WITHOUT EXIF, and sends the original's FocalLengthIn35mmFilm as f35_mm: that
+    # must give the same intrinsics at model size as the original file
+    for fn, v in phones.items():
+        if not fn.lower().endswith((".jpg", ".jpeg")):
+            continue
+        im = Image.open(os.path.join(a.test_images, fn))
+        f35 = im.getexif().get_ifd(0x8769).get(0xA405)
+        im = ImageOps.exif_transpose(im).convert("RGB")
+        im.thumbnail((1280, 1280))                          # proportional, never upscales
+        buf = io.BytesIO()
+        im.save(buf, "JPEG", quality=90)                    # no exif= argument: EXIF dropped, as in the browser
+        small = buf.getvalue()
+        r0 = post(files={"file": (fn, small, "image/jpeg")}, camera_height=a.phone_height)
+        r = post(files={"file": (fn, small, "image/jpeg")}, camera_height=a.phone_height, f35_mm=float(f35))
+        b0, b = r0.json(), r.json()
+        v["resized_upload"] = {"file_mb": round(len(small) / 1e6, 3), "size": list(im.size), "f35_mm": float(f35),
+                               "fx": b["camera"]["fx"], "fov_source": b["camera"]["fov_source"],
+                               "status": b["status"], "scale": b.get("scale"), "server_ms": b["timings_ms"]["total"]}
+        check(f"phone photo {fn} resized to {im.size[0]}x{im.size[1]} + f35_mm: same fx as the original",
+              b["camera"]["fov_source"] == "exif_35mm" and b["input"]["model_hw"] == v["input"]["model_hw"]
+              and abs(b["camera"]["fx"] / v["camera"]["fx"] - 1) < 1e-6 and b["status"] == v["status"],
+              original_fx=v["camera"]["fx"], resized_fx=b["camera"]["fx"], resized_mb=len(small) / 1e6,
+              without_f35_source=b0["camera"]["fov_source"])
 
     # ---- refused plane fit, at pipeline level ----
     fns = []

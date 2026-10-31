@@ -17,7 +17,7 @@ from depth_model import DepthModel, METRIC_CKPT
 from eval_depth import crop_bottom_centre, val_drives
 from ground_plane import fit_ground
 from kitti_loader import KittiRawDrive
-from pipeline import (GREEN, GREY, MAGENTA, RED, UPSAMPLE, counts, fit_to_size, fuse_labels,
+from pipeline import (BLUE, GREY, ORANGE, PATH, UPSAMPLE, YELLOW, counts, fit_to_size, fuse_labels,
                       onnx_fn, paint_photo, ratios, run, upsample_rows)
 from planner import astar, pick_start_goal
 from pointcloud import classify_heights, floor_frame
@@ -33,9 +33,9 @@ ROBOT_RADIUS = 1.0                              # metres: KITTI car is ~1.8 m wi
 
 
 def colour(grid, false_free=None):
-    rgb = np.array([GREEN, RED, GREY])[grid]          # indexed by FREE, OCCUPIED, UNKNOWN
+    rgb = np.array([BLUE, ORANGE, GREY])[grid]          # indexed by FREE, OCCUPIED, UNKNOWN
     if false_free is not None:
-        rgb[false_free] = MAGENTA
+        rgb[false_free] = YELLOW
     return rgb
  
  
@@ -179,10 +179,10 @@ def main():
  
     os.makedirs(os.path.join(a.report_dir, "image"), exist_ok=True)
     print(f"\nframes with the most false-free cells:")
-    legend = [Patch(color=GREEN, label="free"), Patch(color=RED, label="occupied"),
+    legend = [Patch(color=BLUE, label="free"), Patch(color=ORANGE, label="occupied"),
               Patch(color=GREY, label="unknown (not seen)"),
-              Patch(color=MAGENTA, label="called free, LiDAR says occupied")]
-    legend.append(plt.Line2D([], [], color="blue", lw=2, label="A* path (inflated grid)"))
+              Patch(color=YELLOW, label="called free, LiDAR says occupied")]
+    legend.append(plt.Line2D([], [], color=PATH, lw=2, label="A* path (inflated grid)"))
     for n_ff, name, f, painted, pg, gg, path, T, K in worst:
         if path:                                        # path cells -> metres on the floor
             ix, iy = np.array(path).T
@@ -192,7 +192,7 @@ def main():
         if path:                                        # floor points -> pixels
             floor = np.stack([px_x, px_y, np.zeros_like(px_x)], 1)
             uv, z = project(transform_points(floor, np.linalg.inv(T)), K)
-            ax0.plot(uv[:, 0], uv[:, 1], color="blue", lw=2)
+            ax0.plot(uv[:, 0], uv[:, 1], color=PATH, lw=2)
         ax0.set_title(f"{name} frame {f}: what the camera-only grid decided, painted on the photo "
                       f"({n_ff} false-free cells)", fontsize=10)
         for i, (g, title, ff) in enumerate([
@@ -205,7 +205,7 @@ def main():
                 ax.text(0.3, r - 0.9, f"{r} m", fontsize=7, alpha=0.8)
             ax.plot(0, 0.3, marker="^", markersize=12, color="black")   # the camera
             if path and i == 0:
-                ax.plot(-px_y, px_x, color="blue", lw=2)    # sideways axis is -y
+                ax.plot(-px_y, px_x, color=PATH, lw=2)    # sideways axis is -y
             ax.set_xlim(-Y_HALF, Y_HALF); ax.set_ylim(0, X_MAX)
             ax.set_title(title, fontsize=9)
             ax.set_xlabel("sideways (m), left negative"); ax.set_ylabel("forward (m)")

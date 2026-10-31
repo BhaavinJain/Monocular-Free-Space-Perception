@@ -144,6 +144,10 @@ depth map, the occupancy grid and a planned path, with the assumptions stated on
      `fx = f35 * sqrt(W^2 + H^2) / 43.27` — the 35 mm-equivalent focal length is
      defined by the frame DIAGONAL (43.27 mm), so this holds for any aspect ratio
      and orientation;
+     The browser shrinks JPEG/PNG/WebP uploads (1280 px long side, JPEG 0.9, no EXIF;
+     `web/src/shrink.js`) and sends the original's f35 as the form field `f35_mm`,
+     which the server uses exactly like the EXIF value (added after the M6 timing log:
+     a 3.58 MB phone JPEG spent ~9.8 s of 10.5 s uploading). HEIC/HEIF go unchanged;
   4. else the default horizontal FOV of 70 deg, with the formula of step 2;
   5. `fy = fx`, `cx = W / 2`, `cy = H / 2`. Report which source was used
      (`user` / `exif_35mm` / `default_70`; samples: `kitti_calibration`).
@@ -445,6 +449,12 @@ cold starts (Azure scale-to-zero), and the
 assumptions (camera height sets scale, FOV source, flat floor, trained on German
 streets). API URL from `VITE_API_URL`.
 Check: works locally against the local API, then on Vercel against the Azure service.
+
+*M6 design (after the first live check):* dark theme only; colour-blind-safe palette
+everywhere: free blue #2E6BE6, occupied orange #E8770E, false-free yellow #F0E442
+(evaluation pictures), path dark #15181D at ~50% with a white edge
+(`pipeline.BLUE/ORANGE/YELLOW/PATH`); never red against green. Verdict class names
+in plain words (`pipeline.PLAIN`, `nearest_obstacle.name`; `class` stays Cityscapes).
 
 **M7. Polish (optional, only after M6 works end to end).**
 Mobile layout, webcam capture, `/predict/sequence`.

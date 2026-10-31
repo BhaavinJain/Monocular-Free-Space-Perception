@@ -16,12 +16,12 @@ import shutil
 
 # what each failure picture shows, in words (keyed by frame: see the docstring)
 CAPTIONS = {
-    195: "The far ends of the parked cars, near the far edge of the map, were called free (magenta): "
+    195: "The far ends of the parked cars, near the far edge of the map, were called free (yellow): "
          "far away, object outlines blur into the road.",
     115: "The side of a parked car on the left, far ahead, slipped into the free area: "
          "the errors sit at the edges of objects.",
-    465: "Two mistakes at once: car and hedge edges far ahead called free (magenta), and a strip of "
-         "open road on the right wrongly marked blocked (red where the laser saw free) - the safe kind of mistake.",
+    465: "Two mistakes at once: car and hedge edges far ahead called free (yellow), and a strip of "
+         "open road on the right wrongly marked blocked (orange where the laser saw free) - the safe kind of mistake.",
 }
 
 

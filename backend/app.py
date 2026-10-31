@@ -172,6 +172,7 @@ def predict(file: UploadFile | None = File(None),
             sample_id: str | None = Form(None),
             camera_height: float = Form(1.5, ge=0.1, le=5.0),
             hfov_deg: float | None = Form(None, ge=20.0, le=150.0),
+            f35_mm: float | None = Form(None, gt=0.0, le=2000.0),
             drivable: Literal["none", "road", "road+sidewalk"] | None = Form(None),
             preset: Literal["outdoor", "indoor"] = Form("outdoor")):
     t_start = time.perf_counter()
@@ -188,6 +189,10 @@ def predict(file: UploadFile | None = File(None),
         full_hfov = hfov(K, img.shape[1])
     else:
         img, f35 = read_upload(file)
+        # the browser shrinks photos before uploading, which drops their EXIF, so it
+        # reads FocalLengthIn35mmFilm from the original and sends it here; it is used
+        # exactly like the EXIF value (a proportional resize leaves the formula valid)
+        f35 = f35_mm or f35
         H, W = img.shape[:2]
         if min(H, W) < min(MODEL_HW):
             raise HTTPException(400, f"image too small: {W}x{H}, need at least {min(MODEL_HW)} px on the short side")

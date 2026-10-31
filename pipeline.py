@@ -43,7 +43,17 @@ CITYSCAPES = ["road", "sidewalk", "building", "wall", "fence", "pole", "traffic 
               "truck", "bus", "train", "motorcycle", "bicycle"]
 SIDE_MARGIN = 1.0   # m: the verdict looks for obstacles this far beyond the robot's width
 
-GREEN, RED, GREY, MAGENTA = (0.2, 0.8, 0.2), (0.9, 0.1, 0.1), (0.8, 0.8, 0.8), (1.0, 0.0, 1.0)
+# colour-blind-safe (never red against green): free blue #2E6BE6, occupied orange
+# #E8770E, unknown grey; yellow (Okabe-Ito #F0E442) marks false-free cells in the
+# evaluation pictures; PATH (#15181D) is the planned path there
+BLUE, ORANGE, GREY, YELLOW = (0.180, 0.420, 0.902), (0.910, 0.467, 0.055), (0.8, 0.8, 0.8), (0.941, 0.894, 0.259)
+PATH = (0.082, 0.094, 0.114)
+# Cityscapes names in plain words for the verdict sentence; classes that are not
+# objects (road, sky, ...) fall back to "obstacle"
+PLAIN = {"building": "building", "wall": "wall", "fence": "fence", "pole": "pole",
+         "traffic light": "traffic light", "traffic sign": "traffic sign", "vegetation": "bushes or trees",
+         "terrain": "grass or soil", "person": "person", "rider": "cyclist or rider", "car": "car",
+         "truck": "truck", "bus": "bus", "train": "tram or train", "motorcycle": "motorbike", "bicycle": "bicycle"}
 
 
 def upsample_rows(depth, K, k=UPSAMPLE):
@@ -119,7 +129,7 @@ def paint_photo(img, pts, labels, pred_grid, cell, x_max, y_half, gt_grid=None, 
     """
     Tint every pixel by the state of the grid cell its OWN 3D point falls in:
     road pixels show where the grid says free, car pixels where it says
-    occupied. With a LiDAR gt_grid, magenta marks pixels whose cell was called
+    occupied. With a LiDAR gt_grid, yellow marks pixels whose cell was called
     free although the LiDAR says occupied. Pixels whose point is ignored (sky,
     treetops, anything above 2 m) or outside the grid keep their original colour.
     """
@@ -130,8 +140,8 @@ def paint_photo(img, pts, labels, pred_grid, cell, x_max, y_half, gt_grid=None, 
     if gt_grid is not None:
         g[ok] = gt_grid[ix[ok], iy[ok]]
     tint, use = np.zeros((len(pts), 3)), np.zeros(len(pts), bool)
-    for mask, rgb in ((p == FREE, GREEN), (p == OCCUPIED, RED),
-                      ((p == FREE) & (g == OCCUPIED), MAGENTA)):
+    for mask, rgb in ((p == FREE, BLUE), (p == OCCUPIED, ORANGE),
+                      ((p == FREE) & (g == OCCUPIED), YELLOW)):
         tint[mask], use = rgb, use | mask
     out = img.reshape(-1, 3) / 255.0
     out[use] = (1 - alpha) * out[use] + alpha * tint[use]
@@ -177,7 +187,7 @@ def describe(grid, pts, labels, sem_k, path_m, T, K, H, W, P):
             m = ok & (ci == i) & (cj == j) & ((labels == OBSTACLE) | (labels == HOLE))
             name = CITYSCAPES[np.bincount(sem_k[m]).argmax()]
         return {"distance_m": round(float(i * cell), 2), "lateral_m": round(y, 2), "class": name,
-                "side": "ahead" if abs(y) <= r else ("left" if y > 0 else "right")}
+                "name": PLAIN.get(name, "obstacle"), "side": "ahead" if abs(y) <= r else ("left" if y > 0 else "right")}
 
     _, ys = cell_centres(cell, x_max, y_half)
     lane = np.abs(ys[0]) <= r                       # columns the robot's body sweeps
@@ -206,7 +216,7 @@ def describe(grid, pts, labels, sem_k, path_m, T, K, H, W, P):
 
     vf, cc, ob = v["visible_from_m"], v["corridor_clear_m"], v["nearest_obstacle"]
     if blocker:
-        level, text = "blocked", f"Stop: {blocker['class']} {blocker['distance_m']:.1f} m ahead"
+        level, text = "blocked", f"Stop: {blocker['name']} {blocker['distance_m']:.1f} m ahead"
     elif vf is None:
         level, text = "unknown", "The corridor straight ahead is not in the camera's view."
     elif cc <= vf:
@@ -217,7 +227,7 @@ def describe(grid, pts, labels, sem_k, path_m, T, K, H, W, P):
         level, text = "clear", (f"Clear from {vf:.0f} m to {cc:.0f} m ahead; "
                                 f"the floor in the first {vf:.0f} m is outside the camera's view.")
     if ob and level != "blocked":
-        text += (f" Nearest obstacle: {ob['class']} {ob['distance_m']:.1f} m ahead"
+        text += (f" Nearest obstacle: {ob['name']} {ob['distance_m']:.1f} m ahead"
                  + ("." if ob["side"] == "ahead" else f", {abs(ob['lateral_m']):.1f} m to the {ob['side']}."))
     v.update(level=level, text=text, blocker=blocker)
 

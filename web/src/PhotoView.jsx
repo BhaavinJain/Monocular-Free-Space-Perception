@@ -10,12 +10,16 @@ export default function PhotoView({ res }) {
         {res.ribbon_px && (
           <polygon points={res.ribbon_px.map((p) => p.join(",")).join(" ")} className="ribbon" />
         )}
-        {res.distance_lines_px.filter((l) => l.points.length > 1).map((l) => (
-          <g key={l.d_m}>
-            <polyline points={l.points.map((p) => p.join(",")).join(" ")} className="dist" />
-            <text x={l.points[0][0] + 3} y={l.points[0][1] - 3} className="dist-label">{l.d_m} m</text>
-          </g>
-        ))}
+        {res.distance_lines_px.filter((l) => l.points.length > 1).map((l) => {
+          // label at the line's left end, kept inside the photo (it was clipped at the edge)
+          const [x, y] = l.points.reduce((a, p) => (p[0] < a[0] ? p : a));
+          return (
+            <g key={l.d_m}>
+              <polyline points={l.points.map((p) => p.join(",")).join(" ")} className="dist" />
+              <text x={Math.min(Math.max(x + 4, 4), w - 34)} y={Math.min(Math.max(y - 4, 12), h - 4)} className="dist-label">{l.d_m} m</text>
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
