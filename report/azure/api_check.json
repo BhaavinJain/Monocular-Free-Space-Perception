@@ -1,0 +1,362 @@
+{
+  "passed": true,
+  "findings": [],
+  "checks": [
+    {
+      "name": "GET /health",
+      "passed": true,
+      "body": {
+        "status": "ok",
+        "models_loaded": true,
+        "input_hw": [
+          294,
+          392
+        ],
+        "threads": 2,
+        "onnxruntime": "1.31.1",
+        "samples": 6,
+        "cpu_model": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+        "cpu_limit": null,
+        "host_cpu_count": 2
+      }
+    },
+    {
+      "name": "GET /samples lists the gallery",
+      "passed": true,
+      "ids": [
+        "0023_000005",
+        "0023_000107",
+        "0023_000210",
+        "0023_000262",
+        "0023_000365",
+        "0023_000468"
+      ]
+    },
+    {
+      "name": "pipeline.CITYSCAPES == segformer.json labels",
+      "passed": true
+    },
+    {
+      "name": "sample 0023_000005",
+      "passed": true,
+      "abs_rel": 0.09634652391864565,
+      "benchmark_abs_rel": 0.09634647605199802,
+      "lidar_metrics": {
+        "free_iou": 0.7975893599334996,
+        "false_free_rate": 0.0,
+        "missed_obstacle_rate": 0.0,
+        "cells_evaluated": 2596.0,
+        "false_free_rate_inflated": 0.0
+      },
+      "scale": 0.8651504125052305,
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: terrain 5.3 m ahead, 1.9 m to the right.",
+      "total_ms": 695
+    },
+    {
+      "name": "sample 0023_000107",
+      "passed": true,
+      "abs_rel": 0.03822740820440906,
+      "benchmark_abs_rel": 0.0382274349720565,
+      "lidar_metrics": {
+        "free_iou": 0.9647577092511013,
+        "false_free_rate": 0.015287769784172662,
+        "missed_obstacle_rate": 0.2111801242236025,
+        "cells_evaluated": 2397.0,
+        "false_free_rate_inflated": 0.0005128205128205128
+      },
+      "scale": 0.8834488331206435,
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
+      "total_ms": 617
+    },
+    {
+      "name": "sample 0023_000210",
+      "passed": true,
+      "abs_rel": 0.056293396687105486,
+      "benchmark_abs_rel": 0.056293408830791127,
+      "lidar_metrics": {
+        "free_iou": 0.8402335456475584,
+        "false_free_rate": 0.025246305418719212,
+        "missed_obstacle_rate": 0.10353535353535354,
+        "cells_evaluated": 2239.0,
+        "false_free_rate_inflated": 0.0
+      },
+      "scale": 0.8841676365999848,
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.4 m ahead, 1.9 m to the right.",
+      "total_ms": 558
+    },
+    {
+      "name": "sample 0023_000262",
+      "passed": true,
+      "abs_rel": 0.04525085962461195,
+      "benchmark_abs_rel": 0.045250860175563484,
+      "lidar_metrics": {
+        "free_iou": 0.9440963855421687,
+        "false_free_rate": 0.013595166163141994,
+        "missed_obstacle_rate": 0.07941176470588235,
+        "cells_evaluated": 2388.0,
+        "false_free_rate_inflated": 0.0006215040397762585
+      },
+      "scale": 0.879520599783443,
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
+      "total_ms": 512
+    },
+    {
+      "name": "sample 0023_000365",
+      "passed": true,
+      "abs_rel": 0.050561207216452755,
+      "benchmark_abs_rel": 0.050561184444722684,
+      "lidar_metrics": {
+        "free_iou": 0.9063625450180072,
+        "false_free_rate": 0.0006618133686300463,
+        "missed_obstacle_rate": 0.002840909090909091,
+        "cells_evaluated": 2017.0,
+        "false_free_rate_inflated": 0.0
+      },
+      "scale": 0.8719552956185013,
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.2 m ahead, 1.9 m to the right.",
+      "total_ms": 692
+    },
+    {
+      "name": "sample 0023_000468",
+      "passed": true,
+      "abs_rel": 0.041997866789733704,
+      "benchmark_abs_rel": 0.04199786001296315,
+      "lidar_metrics": {
+        "free_iou": 0.9635535307517085,
+        "false_free_rate": 0.019925857275254866,
+        "missed_obstacle_rate": 0.15579710144927536,
+        "cells_evaluated": 2428.0,
+        "false_free_rate_inflated": 0.0
+      },
+      "scale": 0.8792079441530836,
+      "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
+      "total_ms": 520
+    },
+    {
+      "name": "upload full KITTI frame, h=1.65, hfov=80: sensible grid",
+      "passed": true,
+      "frame": 5,
+      "scale_upload": 0.8878205824217575,
+      "scale_sample": 0.8651504125052305,
+      "iou_upload": 0.7733664185277088,
+      "iou_sample": 0.7975893599334996,
+      "verdict": "Stop: car 15.8 m ahead",
+      "camera": {
+        "height_m": 1.65,
+        "fx": 580.2219211047875,
+        "fy": 580.2219211047875,
+        "cx": 195.892,
+        "cy": 146.892,
+        "hfov_deg": 80.0,
+        "model_hfov_deg": 37.3,
+        "fov_source": "user"
+      },
+      "total_ms": 586
+    },
+    {
+      "name": "EXIF orientation 6 + f35: portrait, fx from the diagonal",
+      "passed": true,
+      "input": {
+        "original_hw": [
+          400,
+          300
+        ],
+        "model_hw": [
+          392,
+          294
+        ],
+        "crop_box": {
+          "y0": 0,
+          "x0": 0,
+          "h": 400,
+          "w": 300
+        }
+      },
+      "fx": 294.4303212387335,
+      "fx_expected": 294.4303212387335,
+      "status": "refused"
+    },
+    {
+      "name": "user FOV wins over EXIF",
+      "passed": true,
+      "camera": {
+        "height_m": 1.5,
+        "fx": 254.61146871262497,
+        "fy": 254.61146871262497,
+        "cx": 146.99,
+        "cy": 195.99,
+        "hfov_deg": 60.0,
+        "model_hfov_deg": 60.0,
+        "fov_source": "user"
+      }
+    },
+    {
+      "name": "no EXIF, no FOV -> default 70 deg",
+      "passed": true,
+      "camera": {
+        "height_m": 1.5,
+        "fx": 279.91700932145443,
+        "fy": 279.91700932145443,
+        "cx": 195.99,
+        "cy": 146.99,
+        "hfov_deg": 70.0,
+        "model_hfov_deg": 70.0,
+        "fov_source": "default_70"
+      }
+    },
+    {
+      "name": "reject: 11 MB file -> 413",
+      "passed": true,
+      "got": 413,
+      "detail": "file larger than 10 MB"
+    },
+    {
+      "name": "reject: decompression bomb (50 MP PNG) -> 413",
+      "passed": true,
+      "got": 413,
+      "detail": "image larger than 40 megapixels"
+    },
+    {
+      "name": "reject: text file named .jpg -> 415",
+      "passed": true,
+      "got": 415,
+      "detail": "not an image file Pillow can read (JPEG, PNG, WebP, ...)"
+    },
+    {
+      "name": "reject: truncated JPEG -> 400",
+      "passed": true,
+      "got": 400,
+      "detail": "image could not be decoded (image file is truncated (182 bytes not processed))"
+    },
+    {
+      "name": "reject: image too small (200x150) -> 400",
+      "passed": true,
+      "got": 400,
+      "detail": "image too small: 200x150, need at least 294 px on the short side"
+    },
+    {
+      "name": "reject: both sample_id and file -> 400",
+      "passed": true,
+      "got": 400,
+      "detail": "send exactly one of sample_id or file"
+    },
+    {
+      "name": "reject: neither sample_id nor file -> 400",
+      "passed": true,
+      "got": 400,
+      "detail": "send exactly one of sample_id or file"
+    },
+    {
+      "name": "reject: camera_height = -1 -> 422",
+      "passed": true,
+      "got": 422,
+      "detail": [
+        {
+          "type": "greater_than_equal",
+          "loc": [
+            "body",
+            "camera_height"
+          ],
+          "msg": "Input should be greater than or equal to 0.1",
+          "input": "-1",
+          "ctx": {
+            "ge": 0.1
+          }
+        }
+      ]
+    },
+    {
+      "name": "reject: drivable = foo -> 422",
+      "passed": true,
+      "got": 422,
+      "detail": [
+        {
+          "type": "literal_error",
+          "loc": [
+            "body",
+            "drivable"
+          ],
+          "msg": "Input should be 'none', 'road' or 'road+sidewalk'",
+          "input": "foo",
+          "ctx": {
+            "expected": "'none', 'road' or 'road+sidewalk'"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reject: hfov_deg = 5 -> 422",
+      "passed": true,
+      "got": 422,
+      "detail": [
+        {
+          "type": "greater_than_equal",
+          "loc": [
+            "body",
+            "hfov_deg"
+          ],
+          "msg": "Input should be greater than or equal to 20",
+          "input": "5",
+          "ctx": {
+            "ge": 20.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "reject: unknown sample_id -> 404",
+      "passed": true,
+      "got": 404,
+      "detail": "unknown sample_id 'nope'"
+    },
+    {
+      "name": "upper-image KITTI crops are refused (pipeline level)",
+      "passed": true,
+      "crops": [
+        {
+          "frame": 5,
+          "x0": 60,
+          "status": "refused",
+          "reason": "plane tilted 120.7 deg from vertical normal",
+          "tilt_deg": 120.65598782495667
+        },
+        {
+          "frame": 107,
+          "x0": 330,
+          "status": "refused",
+          "reason": "plane tilted 168.7 deg from vertical normal",
+          "tilt_deg": 168.66840617157882
+        },
+        {
+          "frame": 210,
+          "x0": 600,
+          "status": "refused",
+          "reason": "plane tilted 78.4 deg from vertical normal",
+          "tilt_deg": 78.44464986859825
+        },
+        {
+          "frame": 262,
+          "x0": 850,
+          "status": "refused",
+          "reason": "camera-height scale (3.5x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+          "tilt_deg": 7.381000274143675
+        },
+        {
+          "frame": 365,
+          "x0": 1000,
+          "status": "refused",
+          "reason": "plane tilted 35.5 deg from vertical normal",
+          "tilt_deg": 35.494435833225225
+        },
+        {
+          "frame": 468,
+          "x0": 200,
+          "status": "refused",
+          "reason": "plane tilted 172.6 deg from vertical normal",
+          "tilt_deg": 172.64620729183648
+        }
+      ]
+    }
+  ],
+  "borderline_wall_with_floor": null
+}

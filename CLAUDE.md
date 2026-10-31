@@ -63,7 +63,10 @@ Phase 5 (torch-free unless noted):
 | `benchmark.py` | M3: CPU latency + KITTI accuracy per input size |
 | `backend/app.py` | M4: FastAPI server (`uvicorn backend.app:app --port 7860` from the root) |
 | `backend/make_samples.py` | M4: builds the KITTI gallery (`python -m backend.make_samples`) |
-| `backend/check_api.py` | M4 check against a running server (`python -m backend.check_api`) |
+| `backend/check_api.py` | M4 check against a running server (`python -m backend.check_api --url ...`) |
+| `space/Dockerfile` (+ `.dockerignore`, `requirements.txt`) | M5: the server image (build from the root) |
+| `space/deploy.py` | M5: `--models` publishes the HF model repo (`--space` unused) |
+| `space/space_check.py` | M5: measures the live Azure service -> `report/space_check.json` |
 
 PyTorch-based (training / evaluation only — the server must NOT import these):
 `depth_model.py`, `segmenter.py`, `finetune_depth.py`.
@@ -112,6 +115,8 @@ otherwise far rows leave gaps of UNKNOWN cells) and `paint_photo`.
 6. After each milestone, summarise in plain words: what was built, how it was checked,
    what the numbers were, what is still unverified.
 7. Commit messages: no `Co-Authored-By` trailers and no mention of Claude.
+8. Commit BEFORE building any image that will be pushed, so the image's build
+   provenance records the commit it was actually built from.
 
 ## Phase 5 — goal
 
@@ -123,8 +128,10 @@ depth map, the occupancy grid and a planned path, with the assumptions stated on
 - Backend: FastAPI. Frontend: React + Vite, deployed on Vercel.
 - Inference: ONNX Runtime on CPU. No PyTorch in the server or its Docker image.
 - Backend hosting: **Azure Container Apps** (Azure for Students), scale-to-zero, image
-  pulled from **ghcr.io**; app listens on port 7860. (Was: Hugging Face Docker Space —
-  blocked in M5: HF now requires a PRO subscription for Docker Spaces, see M5 status.)
+  pulled from the public **ghcr.io** package; app listens on port 7860. Live API:
+  `https://freespace-api.greentree-fe2c587f.eastasia.azurecontainerapps.io`.
+  (Was: Hugging Face Docker Space — blocked in M5: HF now requires a PRO subscription
+  for Docker Spaces.)
 - ONNX model files and the gallery live in the PUBLIC Hugging Face Hub model repo
   `BhaavinJain/monocular-freespace-models`; the Docker image downloads them at BUILD
   time, pinned to one repo commit (`MODEL_REVISION` in `space/Dockerfile`), so a cold
@@ -303,25 +310,100 @@ is reported; cold start and per-request latency (median, p90 over the 6 samples,
 warm-up excluded) measured on the deployed service -> `report/space_check.json`
 (the numbers the UI displays); hardware reported.
 
-*M5 status (paused, waiting for the owner's Azure for Students account):*
-- DONE — model repo `BhaavinJain/monocular-freespace-models` published (public,
-  commit `d272633e`): `depth.onnx`, `segformer.onnx`, their JSONs, the 6-frame gallery,
-  model card with licences (`space/MODEL_CARD.md`; everything is non-commercial:
-  SegFormer NVIDIA licence, KITTI and Virtual KITTI 2 CC BY-NC-SA 3.0).
-- DONE — local image (`docker build -f space/Dockerfile -t freespace:local .` from the
-  root): runs as uid 1000, no torch; 284 MB compressed, ~630 MB unpacked; `/health`
-  ready 2-3.5 s after `docker run`; memory 261 MB idle, **633 MB after a 12 MP upload**,
-  so the host needs >= 1 GB. `backend/check_api.py` against the container: all checks
-  pass (`report/docker/api_check.json`). It caught a Linux-only bug (int64 labels vs
-  opencv-python-headless), fixed in `pipeline.py`.
-- BLOCKED — Hugging Face Space: `deploy.py --space` got 402, "hosting Gradio and Docker
-  Spaces on free cpu-basic requires a PRO subscription". No Space was created.
-  `space/README.md` (Space card) and `deploy.py --space` are now unused.
-- TODO (Azure): push the image to ghcr.io; create the Container App (scale-to-zero,
-  port 7860, >= 1 GB memory, `ORT_THREADS` = the vCPUs given, `CORS_ORIGINS` for M6);
-  adapt `space/space_check.py` (it uses HF's `restart_space` / `space_info`: cold start
-  must instead be measured from scale-to-zero, which on Azure includes pulling the
-  284 MB image); run `check_api.py` and the latency check against the public URL.
+*M5 status: DONE (2026-10-30).*
+- Model repo `BhaavinJain/monocular-freespace-models` (public, commit `d272633e`):
+  `depth.onnx`, `segformer.onnx`, their JSONs, the 6-frame gallery, model card with
+  licences (`space/MODEL_CARD.md`; everything is non-commercial: SegFormer NVIDIA
+  licence, KITTI and Virtual KITTI 2 CC BY-NC-SA 3.0).
+- Image `ghcr.io/bhaavinjain/monocular-freespace:2920631` (public package; index
+  `sha256:dc43083d...`). Built from the root with
+  `docker build -f space/Dockerfile -t freespace:local .`; runs as uid 1000, no torch;
+  284.1 MB compressed (all 12 blobs pulled anonymously and sha256-verified before use),
+  ~630 MB unpacked; memory 261 MB idle, 633 MB after a 12 MP upload. The HF download
+  caches are deleted in the same RUN step. Audited before going public: no credentials,
+  no data beyond the 6 published samples. Known: its build attestation records git
+  revision `c93c6ef` (built before committing `2920631`; contents equal `2920631`) —
+  accepted; fixed by the Phase 6 rebuild below.
+- `backend/check_api.py`: all checks pass against the local container
+  (`report/docker/`) and the live service (`report/azure/`). The container run caught a
+  Linux-only bug (int64 labels vs opencv-python-headless), fixed in `pipeline.py`. On
+  Azure the samples' AbsRel matches `benchmark.json` to < 5e-8 (different CPU kernels).
+- Hugging Face Space: BLOCKED (402, Docker Spaces need PRO); none created.
+  `space/README.md` and `deploy.py --space` are unused.
+
+*Measured on the live service* (`space/space_check.py` -> `report/space_check.json`,
+2026-10-30 21:03-21:19 IST). **These are the numbers the UI displays:**
+
+| What | Median | p90 | n |
+|---|---|---|---|
+| Server processing time per request (gallery samples, `timings_ms.total`) | **0.46 s** | 0.48 s | 18 |
+|  - depth / segmentation / geometry | 248 / 105 / 82 ms | 258 / 132 / 96 ms | 18 |
+| Server processing time, 12 MP JPEG upload (1.52 MB file) | **0.57 s** | 0.65 s | 3 |
+| Cold start: zero replicas -> `/health` 200 | **4.3 s** | 4.8 s | 3 |
+| First `/predict` after a cold start (round trip) | 2.6-3.2 s | | 3 |
+| Round trip from the owner's machine (India -> East Asia), samples | 2.7 s | 3.9 s | 18 |
+
+- Hardware: 2 vCPU / 4 GiB; the replica sees 2 cores (its own small VM, no cgroup
+  quota). CPU model varies by replica: Intel Xeon Platinum 8573C during the measurement,
+  8370C on the first start. ONNX Runtime 2 threads.
+- No overlap: Azure Monitor's per-minute `Requests` metric for the run accounts for all
+  33 script requests; the only other traffic (2 requests ~21:00, one browser visit)
+  was before the run started (21:03:05). Each cold start records its wall-clock window
+  in `report/space_check.json`.
+- Not verified: a cold start on a node WITHOUT the image cached (4.3 s suggests the
+  image was cached; a fresh node also pulls 284 MB). The round trip (2.7 s vs 0.46 s
+  server) is mostly network: a new TLS connection per request in the script and a
+  ~0.46 MB gzip response; a browser reuses connections, so M6 should measure its own
+  round trip. Real phone JPEGs are 3-5 MB, so uploads take longer to send than the
+  1.52 MB test file.
+
+*Azure resources* — everything in ONE resource group, `rg-freespace` (East Asia;
+the subscription policy allows only malaysiawest, indonesiacentral, indiasouthcentral,
+eastasia, polandcentral):
+
+| Resource | What | Expected monthly cost |
+|---|---|---|
+| `rg-freespace` | resource group | free |
+| `env-freespace` | Container Apps environment, Consumption profile only, no Log Analytics, not zone-redundant | $0 (no fixed fee without a Dedicated profile) |
+| `freespace-api` | Container App, 2 vCPU / 4 GiB, 0-1 replicas, external ingress 7860, `ORT_THREADS=2` | $0 at portfolio traffic: billed only while a replica runs (each visit keeps it up ~5 min of cooldown); the monthly free grant (~180k vCPU-s, ~360k GiB-s, 2M requests — from memory, check the pricing page) covers ~25 replica-hours, ~300 visits |
+| `budget-freespace` | Cost Management budget on `rg-freespace`: US$10/month, email bhaavinjain@gmail.com at 50/80/100 % actual and 100 % forecast | free |
+
+Outside Azure (not deleted with the group): the public ghcr.io package (free) and the
+HF model repo (free). Azure for Students has no card: if the credit runs out, services
+stop; nothing is charged. Prices above are not measured; the budget alert is the check.
+
+**Delete the whole Azure deployment (app, environment, budget) with one command:**
+```
+az group delete -n rg-freespace --yes
+```
+
+*How it was deployed* (repeat these to redeploy; `<sha>` = the commit the image was
+built from — commit first, hard rule 8):
+```
+docker tag freespace:local ghcr.io/bhaavinjain/monocular-freespace:<sha>
+docker push ghcr.io/bhaavinjain/monocular-freespace:<sha>   # package must be public
+az extension add --name containerapp --upgrade
+az provider register -n Microsoft.App --wait
+az provider register -n Microsoft.OperationalInsights --wait
+az group create -n rg-freespace -l eastasia
+az containerapp env create -n env-freespace -g rg-freespace -l eastasia --logs-destination none
+az containerapp create -n freespace-api -g rg-freespace --environment env-freespace \
+  --image ghcr.io/bhaavinjain/monocular-freespace:<sha> --ingress external --target-port 7860 \
+  --cpu 2 --memory 4Gi --min-replicas 0 --max-replicas 1 --env-vars ORT_THREADS=2
+# new image later:  az containerapp update -n freespace-api -g rg-freespace --image ...:<sha>
+# M6:               az containerapp update -n freespace-api -g rg-freespace --set-env-vars CORS_ORIGINS=<vercel url>
+```
+The budget was created with `az rest` (PUT on
+`/subscriptions/<id>/resourceGroups/rg-freespace/providers/Microsoft.Consumption/budgets/budget-freespace`).
+
+**Phase 6 checklist (deployment follow-ups):**
+- Before the GitHub repo goes public, git history will be REWRITTEN (also purges
+  `checkpoints/depth_best.pt`, committed in `3c62006`). That changes every commit hash.
+  Afterwards: rebuild the image from the final commit with `--provenance=false`, push it
+  under the new commit's tag, `az containerapp update ... --image` to it, and delete the
+  old package versions on ghcr.io (index + image + attestation entries), so the public
+  image's recorded revision exists in the public history.
+- Report how often the scale plausibility check refuses real floors on NYU / DIODE.
 
 **M6. React + Vite frontend (`web/`), on Vercel.**
 Default view: the KITTI sample gallery (measured results). Upload mode, labelled

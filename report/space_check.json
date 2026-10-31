@@ -1,0 +1,145 @@
+{
+  "service": "Azure Container Apps",
+  "url": "https://freespace-api.greentree-fe2c587f.eastasia.azurecontainerapps.io",
+  "region": "East Asia",
+  "revision": "freespace-api--latest",
+  "image": "ghcr.io/bhaavinjain/monocular-freespace:2920631",
+  "image_compressed_mb": 284.1,
+  "hardware": {
+    "vcpu": 2.0,
+    "memory": "4Gi",
+    "scale": {
+      "cooldownPeriod": null,
+      "maxReplicas": 1,
+      "minReplicas": 0,
+      "pollingInterval": null,
+      "rules": [
+        {
+          "http": {
+            "metadata": {
+              "concurrentRequests": "10"
+            }
+          },
+          "name": "http-scaler"
+        }
+      ]
+    },
+    "cpu_model": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "cgroup_cpu_limit": null,
+    "host_cpu_count": 2,
+    "ort_threads": 2
+  },
+  "cold_start": {
+    "runs": [
+      {
+        "health_status": 200,
+        "zero_to_health_s": 4.2366592999969725,
+        "first_predict_round_trip_ms": 2575.0703000012436,
+        "first_predict_server_ms": 670.9512579999997,
+        "waited_for_zero_s": 120.04183529999864,
+        "window_start": "2026-10-30T21:05:05+05:30",
+        "window_end": "2026-10-30T21:05:14+05:30"
+      },
+      {
+        "health_status": 200,
+        "zero_to_health_s": 4.280228000003262,
+        "first_predict_round_trip_ms": 2653.0952000030084,
+        "first_predict_server_ms": 695.4613580000002,
+        "waited_for_zero_s": 385.61715410000033,
+        "window_start": "2026-10-30T21:11:39+05:30",
+        "window_end": "2026-10-30T21:11:49+05:30"
+      },
+      {
+        "health_status": 200,
+        "zero_to_health_s": 4.882889800006524,
+        "first_predict_round_trip_ms": 3243.1727000002866,
+        "first_predict_server_ms": 596.9667349999996,
+        "waited_for_zero_s": 349.19696210000257,
+        "window_start": "2026-10-30T21:17:38+05:30",
+        "window_end": "2026-10-30T21:17:48+05:30"
+      }
+    ],
+    "zero_to_health_s": {
+      "median": 4.280228000003262,
+      "p90": 4.7623574400058715,
+      "n": 3
+    },
+    "note": "from a confirmed zero-replica state; includes scheduling, image pull if not cached, model load"
+  },
+  "samples": {
+    "server_ms": {
+      "decode_resize": {
+        "median": 0.9503710000018373,
+        "p90": 1.2368211000001854,
+        "n": 18
+      },
+      "depth": {
+        "median": 247.98226050000238,
+        "p90": 258.049873100001,
+        "n": 18
+      },
+      "seg": {
+        "median": 105.14164049999764,
+        "p90": 132.27500489999784,
+        "n": 18
+      },
+      "geometry": {
+        "median": 81.76559399999839,
+        "p90": 95.95382090000318,
+        "n": 18
+      },
+      "encode": {
+        "median": 12.976120000001146,
+        "p90": 14.98581879999961,
+        "n": 18
+      },
+      "total": {
+        "median": 461.5906380000006,
+        "p90": 480.42634250000447,
+        "n": 18
+      }
+    },
+    "round_trip_ms": {
+      "median": 2739.9027999999817,
+      "p90": 3885.931630002597,
+      "n": 18
+    }
+  },
+  "uploads_12mp": {
+    "file_mb": 1.52,
+    "server_total_ms": {
+      "median": 572.392758999996,
+      "p90": 646.8772405999914,
+      "n": 3
+    },
+    "round_trip_ms": {
+      "median": 3119.331699999748,
+      "p90": 3129.682980000507,
+      "n": 3
+    },
+    "statuses": [
+      "ok",
+      "ok",
+      "ok"
+    ]
+  },
+  "health": {
+    "status": "ok",
+    "models_loaded": true,
+    "input_hw": [
+      294,
+      392
+    ],
+    "threads": 2,
+    "onnxruntime": "1.31.1",
+    "samples": 6,
+    "cpu_model": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "cpu_limit": null,
+    "host_cpu_count": 2
+  },
+  "display": {
+    "processing_time_s": 0.46,
+    "upload_processing_time_s": 0.57,
+    "cold_start_s": 4
+  }
+}
