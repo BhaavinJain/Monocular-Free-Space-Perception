@@ -1,5 +1,6 @@
 """
-Publish the public Hugging Face model repo: ONNX models + JSONs + gallery + model card.
+Publish the public Hugging Face model repo: ONNX models + JSONs + fine-tuned PyTorch
+weights + gallery + model card.
 
     python -m deploy.deploy
 
@@ -21,6 +22,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--onnx_dir", default="checkpoints/onnx")
     p.add_argument("--samples", default="backend/samples")
+    p.add_argument("--weights", default="checkpoints/depth_best.pt",
+                   help="fine-tuned PyTorch state_dict, published so the full-width results reproduce")
     a = p.parse_args()
     api = HfApi()
     user = api.whoami()["name"]
@@ -28,6 +31,7 @@ def main():
 
     ops = [CommitOperationAdd(f, os.path.join(a.onnx_dir, f))
            for f in ("depth.onnx", "depth.json", "segformer.onnx", "segformer.json")]
+    ops.append(CommitOperationAdd("depth_best.pt", a.weights))
     for root, _, files in os.walk(a.samples):
         for f in files:
             local = os.path.join(root, f)

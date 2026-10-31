@@ -50,6 +50,9 @@ def main():
     p.add_argument("--tag", default="pretrained")
     p.add_argument("--report_dir", default="report")
     p.add_argument("--images", type=int, default=3)
+    p.add_argument("--frames", type=int, nargs="*", default=[],
+                   help="also save the picture for these frames, e.g. a typical one (median IoU), "
+                        "so not every published picture is a worst case")
     p.add_argument("--drivable", default="none", choices=["none", "road", "road+sidewalk"])
     p.add_argument("--size", type=int, nargs=2, default=None, metavar=("H", "W"),
                    help="the SHIPPING path: pipeline.fit_to_size to H x W, then pipeline.run "
@@ -82,7 +85,7 @@ def main():
     band_masks.update({f"{lo}-{hi}m": (dist >= lo) & (dist < hi) for lo, hi in BANDS})
     totals = {k: np.zeros(5, int) for k in band_masks}
     totals_inf = {k: np.zeros(5, int) for k in band_masks}     # on the inflated grid
-    refused, worst = [], []
+    refused, worst, chosen, per_frame = [], [], [], []
  
     for date, num, name in drives:
         drive = KittiRawDrive(a.root, date, num, depth_root=a.depth_root)
@@ -139,8 +142,10 @@ def main():
                 totals[k] += counts(pred_grid, gt_grid, known & m)
                 totals_inf[k] += counts(pred_inf, gt_grid, known & m)
  
+            # per-frame IoU: to find a TYPICAL frame (the pooled IoU above has no per-frame spread)
+            per_frame.append({"drive": name, "frame": f, "free_iou": ratios(counts(pred_grid, gt_grid, known))["free_iou"]})
             n_ff = int(((pred_grid == FREE) & (gt_grid == OCCUPIED)).sum())
-            if len(worst) < a.images or n_ff > worst[-1][0]:
+            if f in a.frames or len(worst) < a.images or n_ff > worst[-1][0]:
                 # the photo overlay uses one 3D point per original pixel
                 px = transform_points(backproject(depth, K).reshape(-1, 3), T)
                 if a.size:
@@ -152,9 +157,13 @@ def main():
                     start, goal = pick_start_goal(pred_inf)
                     path = astar(pred_inf, start, goal) if start is not None else None
                 painted = paint_photo(img, px, px_labels, pred_grid, CELL, X_MAX, Y_HALF, gt_grid)
-                worst.append((n_ff, name, f, painted, pred_grid, gt_grid, path, T, K))
-                worst.sort(key=lambda w: -w[0])
-                del worst[a.images:]
+                entry = (n_ff, name, f, painted, pred_grid, gt_grid, path, T, K)
+                if f in a.frames:
+                    chosen.append(entry)
+                else:
+                    worst.append(entry)
+                    worst.sort(key=lambda w: -w[0])
+                    del worst[a.images:]
         print(f"  {name}: {len(frames)} frames done")
  
     # ---------------- report ----------------
@@ -162,11 +171,15 @@ def main():
               "robot_radius_m": ROBOT_RADIUS,
               "cell_m": CELL, "x_max_m": X_MAX, "y_half_m": Y_HALF,
               "frames_refused": len(refused), "refused": refused[:20],
-              "metrics": {k: ratios(c) for k, c in totals.items()}}
+              "metrics": {k: ratios(c) for k, c in totals.items()},
+              "per_frame_free_iou": per_frame,
+              "median_frame_free_iou": float(np.median([r["free_iou"] for r in per_frame])) if per_frame else None}
     if a.size:
         report.update(size=a.size, backend="onnx" if a.onnx_dir else "pytorch",
                       worst_frames=[{"drive": w[1], "frame": w[2], "false_free_cells": w[0],
-                                     "image": f"bev_{a.tag}_{w[1][17:21]}_{w[2]:03d}.png"} for w in worst])
+                                     "image": f"bev_{a.tag}_{w[1][17:21]}_{w[2]:03d}.png"} for w in worst],
+                      chosen_frames=[{"drive": w[1], "frame": w[2], "false_free_cells": w[0],
+                                      "image": f"bev_{a.tag}_{w[1][17:21]}_{w[2]:03d}.png"} for w in chosen])
     for k, c in totals_inf.items():
         report["metrics"][k]["false_free_rate_inflated"] = c[2] / max(c[3], 1)
     print(f"\nframes refused: {len(refused)}")
@@ -183,7 +196,7 @@ def main():
               Patch(color=GREY, label="unknown (not seen)"),
               Patch(color=YELLOW, label="called free, LiDAR says occupied")]
     legend.append(plt.Line2D([], [], color=PATH, lw=2, label="A* path (inflated grid)"))
-    for n_ff, name, f, painted, pg, gg, path, T, K in worst:
+    for n_ff, name, f, painted, pg, gg, path, T, K in worst + chosen:
         if path:                                        # path cells -> metres on the floor
             ix, iy = np.array(path).T
             px_x, px_y = (ix + 0.5) * CELL, Y_HALF - (iy + 0.5) * CELL

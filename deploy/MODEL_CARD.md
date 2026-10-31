@@ -11,7 +11,7 @@ tags:
 
 # Monocular free-space perception — ONNX models and KITTI gallery
 
-Files served by the Space [HF_USER/monocular-freespace](https://huggingface.co/spaces/HF_USER/monocular-freespace):
+Files used by the live demo [monocular-freespace.vercel.app](https://monocular-freespace.vercel.app):
 one RGB photo in, a metric top-down occupancy grid and a planned path out.
 Code, evaluation scripts and every number below:
 [github.com/BhaavinJain/Monocular-Free-Space-Perception](https://github.com/BhaavinJain/Monocular-Free-Space-Perception).
@@ -26,7 +26,7 @@ education.
 |---|---|---|
 | Depth Anything V2 **Small** (the base architecture/weights) | Apache-2.0 | [Depth-Anything-V2 README](https://github.com/DepthAnything/Depth-Anything-V2) |
 | Depth Anything V2 **Metric-Outdoor-Small** (the starting checkpoint) | **No licence stated** on its model card or in the repository. It was trained on Virtual KITTI 2, which is CC BY-NC-SA 3.0, non-commercial only | [metric_depth README](https://github.com/DepthAnything/Depth-Anything-V2/tree/main/metric_depth), [Virtual KITTI 2 terms](https://europe.naverlabs.com/research/computer-vision/proxy-virtual-worlds-vkitti-2/) |
-| `depth.onnx` (**fine-tuned by this project on KITTI**) | derived from the above and from KITTI (CC BY-NC-SA 3.0): treat as non-commercial | — |
+| `depth.onnx` and `depth_best.pt` (**fine-tuned by this project on KITTI**) | derived from the above and from KITTI (CC BY-NC-SA 3.0): treat as non-commercial | — |
 | `segformer.onnx` (nvidia/segformer-b0-finetuned-cityscapes-1024-1024, unmodified) | NVIDIA Source Code License for SegFormer: "only may be used … non-commercially", i.e. research or evaluation only | [NVlabs/SegFormer LICENSE](https://github.com/NVlabs/SegFormer/blob/master/LICENSE) |
 | `samples/` (6 KITTI frames, depth ground truth, LiDAR grids) | KITTI: CC BY-NC-SA 3.0 | [cvlibs.net/datasets/kitti](https://www.cvlibs.net/datasets/kitti/) |
 
@@ -37,6 +37,7 @@ This table states what the sources say; it is not legal advice.
 | File | What |
 |---|---|
 | `depth.onnx` | Depth Anything V2 Metric-Outdoor-Small, fine-tuned on KITTI raw (`finetune_depth.py`), exported by `export_onnx.py`. Input `pixel_values` (1, 3, H, W) float32, H and W **multiples of 14**, dynamic. Output depth (1, H, W) in metres. |
+| `depth_best.pt` | The same fine-tuned depth weights for PyTorch: a `state_dict` for `depth-anything/Depth-Anything-V2-Metric-Outdoor-Small-hf` (transformers `AutoModelForDepthEstimation`), loaded by `models/depth_model.py` (`DepthModel(weights=...)`). Needed only to reproduce the full-width (350 x 1218) results and the ONNX export; the server uses `depth.onnx`. |
 | `segformer.onnx` | SegFormer-B0 Cityscapes with the upsampling to input size and the argmax inside the graph. Output labels (1, H, W), Cityscapes train ids. |
 | `*.json` | normalisation (`(RGB / 255 - mean) / std`), input/output description, class names |
 | `samples/` | the Space's gallery: 375 x 500 crops of KITTI drive 2011_09_26_0023 (val) with calibration, depth ground truth and LiDAR occupancy grids (`backend/make_samples.py`) |

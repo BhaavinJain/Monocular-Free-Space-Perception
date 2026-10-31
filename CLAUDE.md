@@ -377,6 +377,9 @@ warm-up excluded) measured on the deployed service -> `report/space_check.json`
   (`report/docker/`) and the live service (`report/azure/`). The container run caught a
   Linux-only bug (int64 labels vs opencv-python-headless), fixed in `pipeline.py`. On
   Azure the samples' AbsRel matches `benchmark.json` to < 5e-8 (different CPU kernels).
+- Model repo commit `188dc8d3` (2026-10-31) adds `depth_best.pt` (fine-tuned state_dict,
+  sha256 `72bcdb4f...`, for README reproduction) and the updated card; the ONNX files and
+  gallery are unchanged, so `MODEL_REVISION` stays at `d272633e`.
 - Hugging Face Space: BLOCKED (402, Docker Spaces need PRO); none created.
   The Space card and `deploy.py --space` were removed in the repo reorganisation.
 
@@ -460,6 +463,11 @@ The budget was created with `az rest` (PUT on
   old package versions on ghcr.io (index + image + attestation entries), so the public
   image's recorded revision exists in the public history.
 - Report how often the scale plausibility check refuses real floors on NYU / DIODE.
+- In that image rebuild, remove the unused hover fields (`hover`: `depth_cm`, `labels`,
+  `K`, `T_floor_cam`) from the `/predict` response: the frontend never reads them (checked
+  2026-10-31 in the live JS bundle), so they only add to the response. Measure the response
+  size before and after, and update the README latency table with the new browser times
+  (from a fresh timing log saved under `report/`).
 
 **M6. React + Vite frontend (`web/`), on Vercel.**
 Default view: the KITTI sample gallery (measured results). Upload mode, labelled

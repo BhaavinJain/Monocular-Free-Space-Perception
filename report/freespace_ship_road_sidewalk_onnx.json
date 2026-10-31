@@ -39,6 +39,244 @@
       "false_free_rate_inflated": 0.0043645699614890884
     }
   },
+  "per_frame_free_iou": [
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 5,
+      "free_iou": 0.7975893599334996
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 15,
+      "free_iou": 0.9606890459363958
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 25,
+      "free_iou": 0.9382835101253616
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 35,
+      "free_iou": 0.9330855018587361
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 45,
+      "free_iou": 0.9604722792607803
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 55,
+      "free_iou": 0.966078697421981
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 65,
+      "free_iou": 0.91600790513834
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 75,
+      "free_iou": 0.9555888223552894
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 85,
+      "free_iou": 0.9084934277047523
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 95,
+      "free_iou": 0.9175199089874858
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 105,
+      "free_iou": 0.9630655586334257
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 115,
+      "free_iou": 0.9235369500213584
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 125,
+      "free_iou": 0.9414455626715462
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 135,
+      "free_iou": 0.9196125907990315
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 145,
+      "free_iou": 0.8311435523114356
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 155,
+      "free_iou": 0.8739224137931034
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 165,
+      "free_iou": 0.9063218390804598
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 175,
+      "free_iou": 0.9285714285714286
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 185,
+      "free_iou": 0.9069640914036997
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 195,
+      "free_iou": 0.8831360946745562
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 205,
+      "free_iou": 0.875140607424072
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 215,
+      "free_iou": 0.9177392277560157
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 225,
+      "free_iou": 0.9055201698513801
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 235,
+      "free_iou": 0.8861360042171851
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 245,
+      "free_iou": 0.8972417522985398
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 255,
+      "free_iou": 0.9257195914577531
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 265,
+      "free_iou": 0.9283000949667616
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 275,
+      "free_iou": 0.9081730769230769
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 285,
+      "free_iou": 0.8727272727272727
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 295,
+      "free_iou": 0.9325120514193894
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 305,
+      "free_iou": 0.8984042553191489
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 315,
+      "free_iou": 0.9072447859495061
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 325,
+      "free_iou": 0.9138543516873889
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 335,
+      "free_iou": 0.9
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 345,
+      "free_iou": 0.9443468072642062
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 355,
+      "free_iou": 0.8413510747185261
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 365,
+      "free_iou": 0.9063625450180072
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 375,
+      "free_iou": 0.8701241134751773
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 385,
+      "free_iou": 0.9050664043285784
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 395,
+      "free_iou": 0.9424212598425197
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 405,
+      "free_iou": 0.9384828862164662
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 415,
+      "free_iou": 0.9527452745274527
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 425,
+      "free_iou": 0.8611254517294786
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 435,
+      "free_iou": 0.8759358288770054
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 445,
+      "free_iou": 0.9061371841155235
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 455,
+      "free_iou": 0.8470948012232415
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 465,
+      "free_iou": 0.9211303247574862
+    }
+  ],
+  "median_frame_free_iou": 0.9084934277047523,
   "size": [
     294,
     392
@@ -62,6 +300,14 @@
       "frame": 465,
       "false_free_cells": 128,
       "image": "bev_ship_road_sidewalk_onnx_0023_465.png"
+    }
+  ],
+  "chosen_frames": [
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 85,
+      "false_free_cells": 40,
+      "image": "bev_ship_road_sidewalk_onnx_0023_085.png"
     }
   ]
 }

@@ -1,0 +1,9 @@
+{
+ "page": "https://monocular-freespace.vercel.app",
+ "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+ "runs": [
+  {"what": "sample 0023_000005", "status": "ok", "server_ms": 585.0996000000004, "browser_ms": 2648.5999999940395},
+  {"what": "upload IMG_4328.JPEG (3.58 MB)", "status": "refused", "server_ms": 716.6672890000001, "browser_ms": 10488.5},
+  {"what": "sample 0023_000107", "status": "ok", "server_ms": 508.75577499999736, "browser_ms": 1857.2000000029802}
+ ]
+}
