@@ -9,7 +9,7 @@ Two kinds of input, deliberately treated differently:
           live against KITTI ground truth.
   upload  any photo. Intrinsics come from the user's FOV, else EXIF, else 70 deg;
           camera height from the user. Marked experimental: accuracy on cameras
-          other than KITTI's is not measured (CLAUDE.md, "decisions after M3").
+          other than KITTI's is not measured (see the README, Limitations).
 
 Both go through pipeline.fit_to_size to 294 x 392 (portrait photos: 392 x 294),
 the size benchmark.py chose, and then pipeline.run with ONNX Runtime models.

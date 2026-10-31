@@ -92,7 +92,7 @@ def main():
               lidar_metrics=res.get("lidar", {}).get("metrics"), scale=res["scale"],
               verdict=res["verdict"]["text"], total_ms=round(res["timings_ms"]["total"]))
 
-    # ---- CLAUDE.md M4 check: a full KITTI frame uploaded, h = 1.65, hfov = 80 deg ----
+    # ---- M4 check: a full KITTI frame uploaded, h = 1.65, hfov = 80 deg ----
     s = samples[0]
     drive = KittiRawDrive(a.root, "2011_09_26", "0023")
     full = drive.load_image(s["frame"])

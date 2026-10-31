@@ -163,8 +163,7 @@ def onnx_fn(sess, mean, std):
 
 def describe(grid, pts, labels, sem_k, path_m, T, K, H, W, P):
     """
-    What a result means, in words and in lines on the photo (specified in
-    CLAUDE.md, "M4 definitions"):
+    What a result means, in words and in lines on the photo:
 
       verdict           is the robot-wide corridor straight ahead free, counted from
                         the first row the camera can see (the blind zone in front

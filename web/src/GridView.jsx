@@ -7,7 +7,7 @@ const FREE = [46, 107, 230], OCC = [232, 119, 14], UNK = [42, 47, 56], HATCH = [
 const S = 2; // canvas pixels per grid cell
 
 // Top-down grid: forward is up, the camera sits at the bottom centre. Grid row =
-// forward distance, column 0 = far left (CLAUDE.md, "M4 definitions").
+// forward distance, column 0 = far left (the server's grid layout).
 export default function GridView({ res }) {
   const ref = useRef(null);
   const g = res.grid;
