@@ -31,7 +31,7 @@ explain WHY, in plain words, for every non-trivial change.
 | Phase | Result (KITTI drive 2011_09_26_0023, val) |
 |---|---|
 | 1 Geometry | LiDAR projection matches KITTI depth GT: median 2.1 cm |
-| 2 Metric depth | Fine-tuned AbsRel 0.071 (pretrained 0.101). Camera-height scale within 0.3% of oracle (median s/s_oracle 1.003) |
+| 2 Metric depth | Fine-tuned AbsRel 0.071 with camera-height scaling (pretrained: 0.111 with the same scaling; 0.101 in the network's own metres). Camera-height scale within 0.3% of oracle (median s/s_oracle 1.003) |
 | 3 BEV grid | Free-space IoU 0.830, false-free 7.6% (1.8% after inflation) |
 | 4 Semantics + A* | road+sidewalk fusion: IoU 0.816, false-free 4.4%, 0.3% after inflation, missed obstacles 16.4% -> 8.8% |
 
@@ -259,6 +259,28 @@ This check RELIES ON THE DEPTH NETWORK BEING ROUGHLY METRIC. It would wrongly
 refuse valid floors with a relative-depth model, or wherever the metric model is
 off by more than 2x — possibly indoors, since the network is Metric-OUTDOOR and
 fine-tuned on KITTI. Phase 6 (NYU / DIODE) must report how often it refuses.
+
+*Seen in M6:* the owner's indoor corridor photo (iPhone 15, fx 294 px at 392 x 294,
+h = 1.1 m), JPEG and HEIC alike, is refused with s = 0.23: the plane fit finds the
+floor (tilt 10 deg) but the network puts it ~3.8x too far (6.3 m where geometry says
+~1.7 m). Hypothesis, unverified: KITTI never shows road nearer than ~6 m.
+
+*Focal-aware check: investigated, NOT adopted* (`check_scale_focal.py` ->
+`report/scale_focal.json`). Idea: a metric network bakes in its training fx, so s
+should be ~fx / fx_train and the band should apply to s / (fx / fx_train). Evidence:
+- On the M3 size sweep (10 KITTI frames x 6 sizes, fx 566-1024 px) the oracle scale
+  DOES rise with fx, but weakly: log-log slope 0.28 (1 = proportional). fx_train as
+  median(fx / s_oracle) = 758.5 px (KITTI calibration 721.5), but it differs by size
+  because the dependence is not proportional. Size also changes the crop's content,
+  so the slope mixes both effects.
+- Normalised values: 47 val frames 1.156-1.234 and the 6 samples 1.160-1.185 (all
+  accepted); corridor 0.58 (would be accepted); but the facade crop (fx 1414 px,
+  s 3.451) becomes 1.851 -> ACCEPTED. The adoption rule required all no-floor crops
+  refused, so the check stays as it is (raw s in [0.5, 2.0]).
+- At the measured slope, focal length explains only a small part of the corridor's
+  0.23; the rest points to the indoor domain. fx = 294 px is outside the KITTI range
+  tested, so this is extrapolated. Indoor behaviour is only properly measured in
+  Phase 6 (NYU / DIODE: real cameras, known fx, ground truth).
 
 **M6 presentation rules for the verdict:**
 - Present it as an estimate from ONE photo, not a guarantee: small input changes
