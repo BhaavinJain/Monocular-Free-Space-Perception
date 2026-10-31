@@ -2,8 +2,6 @@
 data/**
 Explain.MD
 __pycache__/
-# local Claude Code settings (per machine, may hold permissions)
-.claude/
 # weights never go in git (forward slashes: git ignores "\" as a separator)
 checkpoints/*
 !checkpoints/finetune_log.csv
