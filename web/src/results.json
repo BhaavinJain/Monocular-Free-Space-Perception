@@ -1,0 +1,106 @@
+{
+  "measured_on": {
+    "frames": 47,
+    "drive": "KITTI drive 2011_09_26_0023 (validation, not used for training)",
+    "camera": "KITTI's front colour camera, mounted 1.65 m above the road",
+    "input": "294 x 392 px, a 4:3 crop of the camera image - what the app uses",
+    "models": "ONNX Runtime, the same models the server runs"
+  },
+  "depth": {
+    "abs_rel": 0.05435278228290281,
+    "pct": 5.435278228290281,
+    "example_10m_m": 0.5435278228290281,
+    "frames": 47,
+    "refused": 0,
+    "pretrained_abs_rel": 0.07530028582282942,
+    "pretrained_backend": "PyTorch",
+    "improvement_pct": 27.818624207101994,
+    "scale_within_6pct": 0.8936170212765957,
+    "full_res": {
+      "abs_rel": 0.0706923498792015,
+      "pretrained_abs_rel": 0.11067133718981553,
+      "scale_within_6pct": 0.8723404255319149,
+      "input": "350 x 1218 px, the full-width crop (Phase 2)"
+    }
+  },
+  "freespace": {
+    "iou": 0.9092155497901242,
+    "false_free": 0.024862003438602842,
+    "false_free_margin": 0.0016130413680874754,
+    "missed": 0.14109641802542047,
+    "cells": 108198,
+    "robot_radius_m": 1.0,
+    "bands": [
+      {
+        "band": "0-10m",
+        "false_free": 0.0076582278481012655,
+        "false_free_margin": 3.5260930888575456e-05
+      },
+      {
+        "band": "10-15m",
+        "false_free": 0.017089813733325136,
+        "false_free_margin": 0.0016662145929399
+      },
+      {
+        "band": "15-20m",
+        "false_free": 0.0523401899408032,
+        "false_free_margin": 0.0043645699614890884
+      }
+    ],
+    "geometry_only": {
+      "iou": 0.9175801611119886,
+      "false_free": 0.02620609501246047,
+      "missed": 0.15053280267043267
+    },
+    "full_res": {
+      "iou": 0.816205084407221,
+      "false_free": 0.04430716624461685,
+      "false_free_margin": 0.0030967038684024725,
+      "missed": 0.08790962621607783,
+      "cells": 202191,
+      "input": "350 x 1218 px, the full-width crop (Phase 4)"
+    }
+  },
+  "timing": {
+    "server_s": 0.4615906380000006,
+    "server_p90_s": 0.4804263425000045,
+    "upload_server_s": 0.572392758999996,
+    "cold_start_s": 4.280228000003262,
+    "requests": 18,
+    "hardware": "Azure Container Apps, 2 vCPU, East Asia",
+    "browser": null
+  },
+  "refusal": {
+    "refused": 6,
+    "total": 6,
+    "what": "crops of the upper part of KITTI images - trees, sky, a building, a van - with no road in them"
+  },
+  "indoor": [
+    {
+      "status": "refused",
+      "reason": "camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "camera_height_m": 1.1,
+      "what": "a phone photo of an indoor corridor (not published: it is the owner's)"
+    }
+  ],
+  "failures": [
+    {
+      "image": "failures/bev_ship_road_sidewalk_onnx_0023_195.png",
+      "frame": 195,
+      "false_free_cells": 143,
+      "caption": "The far ends of the parked cars, near the far edge of the map, were called free (magenta): far away, object outlines blur into the road."
+    },
+    {
+      "image": "failures/bev_ship_road_sidewalk_onnx_0023_115.png",
+      "frame": 115,
+      "false_free_cells": 134,
+      "caption": "The side of a parked car on the left, far ahead, slipped into the free area: the errors sit at the edges of objects."
+    },
+    {
+      "image": "failures/bev_ship_road_sidewalk_onnx_0023_465.png",
+      "frame": 465,
+      "false_free_cells": 128,
+      "caption": "Two mistakes at once: car and hedge edges far ahead called free (magenta), and a strip of open road on the right wrongly marked blocked (red where the laser saw free) - the safe kind of mistake."
+    }
+  ]
+}

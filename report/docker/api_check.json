@@ -50,7 +50,7 @@
       },
       "scale": 0.865150409499535,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: terrain 5.3 m ahead, 1.9 m to the right.",
-      "total_ms": 1164
+      "total_ms": 1044
     },
     {
       "name": "sample 0023_000107",
@@ -66,7 +66,7 @@
       },
       "scale": 0.8834488251238575,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 1069
+      "total_ms": 1015
     },
     {
       "name": "sample 0023_000210",
@@ -82,7 +82,7 @@
       },
       "scale": 0.8841676830028209,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.4 m ahead, 1.9 m to the right.",
-      "total_ms": 1050
+      "total_ms": 1164
     },
     {
       "name": "sample 0023_000262",
@@ -98,7 +98,7 @@
       },
       "scale": 0.8795205906257919,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 1153
+      "total_ms": 1053
     },
     {
       "name": "sample 0023_000365",
@@ -114,7 +114,7 @@
       },
       "scale": 0.8719552732128012,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view. Nearest obstacle: car 5.2 m ahead, 1.9 m to the right.",
-      "total_ms": 1021
+      "total_ms": 1064
     },
     {
       "name": "sample 0023_000468",
@@ -130,7 +130,7 @@
       },
       "scale": 0.8792079389882294,
       "verdict": "Clear from 6 m to 20 m ahead; the floor in the first 6 m is outside the camera's view.",
-      "total_ms": 1071
+      "total_ms": 993
     },
     {
       "name": "upload full KITTI frame, h=1.65, hfov=80: sensible grid",
@@ -151,7 +151,7 @@
         "model_hfov_deg": 37.3,
         "fov_source": "user"
       },
-      "total_ms": 858
+      "total_ms": 877
     },
     {
       "name": "EXIF orientation 6 + f35: portrait, fx from the diagonal",
@@ -220,7 +220,13 @@
       "name": "reject: text file named .jpg -> 415",
       "passed": true,
       "got": 415,
-      "detail": "not an image file Pillow can read (JPEG, PNG, WebP, ...)"
+      "detail": "not a readable image; send JPEG, PNG, WebP or HEIC/HEIF"
+    },
+    {
+      "name": "reject: BMP (readable, but not an accepted format) -> 415",
+      "passed": true,
+      "got": 415,
+      "detail": "unsupported image format (BMP); send JPEG, PNG, WebP or HEIC/HEIF"
     },
     {
       "name": "reject: truncated JPEG -> 400",
@@ -310,6 +316,34 @@
       "detail": "unknown sample_id 'nope'"
     },
     {
+      "name": "phone photo IMG_4328.JPEG: read, FOV from EXIF",
+      "passed": true,
+      "status": "refused",
+      "reason": "camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "scale": null,
+      "verdict": "No floor found: camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "fx": 294.43032123873354
+    },
+    {
+      "name": "phone photo IMG_4330.HEIC: read, FOV from EXIF",
+      "passed": true,
+      "status": "refused",
+      "reason": "camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "scale": null,
+      "verdict": "No floor found: camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "fx": 294.43032123873354
+    },
+    {
+      "name": "HEIC and JPEG: same model size and intrinsics",
+      "passed": true,
+      "jpeg_fx": 294.43032123873354,
+      "heic_fx": 294.43032123873354,
+      "model_hw": [
+        392,
+        294
+      ]
+    },
+    {
       "name": "upper-image KITTI crops are refused (pipeline level)",
       "passed": true,
       "crops": [
@@ -358,5 +392,79 @@
       ]
     }
   ],
-  "borderline_wall_with_floor": null
+  "borderline_wall_with_floor": null,
+  "phone_photos": {
+    "IMG_4328.JPEG": {
+      "http": 200,
+      "file_mb": 3.58,
+      "status": "refused",
+      "reason": "camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "input": {
+        "original_hw": [
+          5712,
+          4284
+        ],
+        "model_hw": [
+          392,
+          294
+        ],
+        "crop_box": {
+          "y0": 0,
+          "x0": 0,
+          "h": 5712,
+          "w": 4284
+        }
+      },
+      "camera": {
+        "height_m": 1.1,
+        "fx": 294.43032123873354,
+        "fy": 294.43032123873354,
+        "cx": 146.53431372549022,
+        "cy": 195.53431372549022,
+        "hfov_deg": 53.1,
+        "model_hfov_deg": 53.1,
+        "fov_source": "exif_35mm"
+      },
+      "scale": null,
+      "tilt_deg": 10.006551490804013,
+      "verdict": "No floor found: camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "server_ms": 734.471966000001
+    },
+    "IMG_4330.HEIC": {
+      "http": 200,
+      "file_mb": 2.65,
+      "status": "refused",
+      "reason": "camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "input": {
+        "original_hw": [
+          5712,
+          4284
+        ],
+        "model_hw": [
+          392,
+          294
+        ],
+        "crop_box": {
+          "y0": 0,
+          "x0": 0,
+          "h": 5712,
+          "w": 4284
+        }
+      },
+      "camera": {
+        "height_m": 1.1,
+        "fx": 294.43032123873354,
+        "fy": 294.43032123873354,
+        "cx": 146.53431372549022,
+        "cy": 195.53431372549022,
+        "hfov_deg": 53.1,
+        "model_hfov_deg": 53.1,
+        "fov_source": "exif_35mm"
+      },
+      "scale": null,
+      "tilt_deg": 13.396322624650097,
+      "verdict": "No floor found: camera-height scale (0.2x) disagrees with the network's own metres: the detected floor is probably not the floor, or the camera height is wrong",
+      "server_ms": 1248.8291119999958
+    }
+  }
 }

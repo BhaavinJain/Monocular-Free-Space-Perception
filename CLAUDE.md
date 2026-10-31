@@ -413,8 +413,15 @@ az containerapp create -n freespace-api -g rg-freespace --environment env-freesp
   --image ghcr.io/bhaavinjain/monocular-freespace:<sha> --ingress external --target-port 7860 \
   --cpu 2 --memory 4Gi --min-replicas 0 --max-replicas 1 --env-vars ORT_THREADS=2
 # new image later:  az containerapp update -n freespace-api -g rg-freespace --image ...:<sha>
-# M6:               az containerapp update -n freespace-api -g rg-freespace --set-env-vars CORS_ORIGINS=<vercel url>
+# M6 (done):        az containerapp update -n freespace-api -g rg-freespace \
+#                     --set-env-vars "CORS_ORIGINS=https://monocular-freespace.vercel.app,http://localhost:5173"
 ```
+`env-freespace` is an **Express** environment: an update rewrites the single revision
+(`freespace-api--latest`) IN PLACE without restarting a replica that is already
+running, and `revision restart` / `stop` / `start` are not available. A changed
+setting (seen with CORS_ORIGINS in M6) only takes effect when a new replica starts:
+let the app scale to zero (no traffic for ~5 min; `az containerapp replica list`
+shows none), then the next request starts one with the new settings.
 The budget was created with `az rest` (PUT on
 `/subscriptions/<id>/resourceGroups/rg-freespace/providers/Microsoft.Consumption/budgets/budget-freespace`).
 

@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.vercel/
+# the Vercel CLI writes short-lived tokens to .env.local; never commit any .env file
+.env*
