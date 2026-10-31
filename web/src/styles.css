@@ -126,7 +126,8 @@ button.link { background: none; border: 0; padding: 0; color: var(--link); text-
 .failures figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; }
 .failures figcaption b { color: var(--text); }
 .failures .text-only { display: flex; align-items: center; }
-.fineprint p { color: var(--muted); margin: 0; }
+.fineprint p { color: var(--muted); margin: 0 0 8px; }
+details summary { cursor: pointer; }
 footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 18px; }
 footer b { color: var(--text); }
 

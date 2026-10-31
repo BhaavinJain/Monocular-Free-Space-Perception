@@ -116,6 +116,7 @@ export default function About() {
           cameras: photos you upload use your camera height and field of view, and accuracy for other cameras
           has not been measured.
         </p>
+        <p>Indoor photos are usually refused: the depth model was trained on street scenes.</p>
       </section>
 
       <footer>

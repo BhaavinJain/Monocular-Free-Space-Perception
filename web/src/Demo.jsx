@@ -7,7 +7,7 @@ import GridView from "./GridView.jsx";
 // The server's refusal reasons (ground_plane.is_valid_fit, scale.py) in plain words.
 function plainReason(reason) {
   if (reason.startsWith("camera-height scale"))
-    return "A flat surface was found, but its distance doesn't match the camera height: the depth model and the camera height disagree. The surface may not be the floor, the camera height may be wrong, or the scene is unlike the streets the model learned from (indoors, for example).";
+    return "The depth model was trained on street scenes from a car camera, so for many indoor or phone photos its distances disagree with the camera height. When they disagree, the app refuses rather than guess. Try an outdoor photo of a road or path, or one of the examples.";
   if (reason.startsWith("no floor-like plane")) return "No flat, floor-like surface was found in the lower part of the photo.";
   if (reason.startsWith("plane tilted")) return "The flattest surface found is tilted too much to be the floor (a wall, for example).";
   if (reason.startsWith("only")) return "Too little of the lower part of the photo lies on one flat surface to trust it as the floor.";
@@ -46,7 +46,7 @@ function Verdict({ res }) {
         <p>{plainReason(res.reason)}</p>
         <h3>What to try</h3>
         <ul className="tips">{TIPS.map((t) => <li key={t}>{t}</li>)}</ul>
-        <p className="fine">Server's reason: {res.reason}</p>
+        <details className="fine"><summary>Technical details</summary>{res.reason}</details>
       </div>
     );
   const ob = v.nearest_obstacle;
