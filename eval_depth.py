@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from depth_model import DepthModel, METRIC_CKPT
 from kitti_loader import KittiRawDrive
 from metrics import compute_depth_metrics, range_stratified, average_metrics, valid_mask
+from pipeline import fit_to_size, onnx_fn
 from scale import estimate_metric_scale
  
 KITTI_CAMERA_HEIGHT = 1.65
@@ -56,10 +57,24 @@ def main():
     p.add_argument("--report_dir", default="report")
     p.add_argument("--error_images", type=int, default=3,
                    help="save error pictures of the N frames contributing most 0-5 m error")
+    p.add_argument("--size", type=int, nargs=2, default=None, metavar=("H", "W"),
+                   help="the SHIPPING path: pipeline.fit_to_size to H x W (as the server does); "
+                        "the scale is fitted at that size, metrics at the crop's full resolution")
+    p.add_argument("--onnx_dir", default=None, help="use depth.onnx from here (the server's model) instead of PyTorch")
     a = p.parse_args()
- 
-    model = DepthModel(a.checkpoint, weights=a.weights)
-    if model.output_type != "metric":
+    if a.onnx_dir and not a.size:
+        p.error("--onnx_dir needs --size")
+
+    if a.onnx_dir:
+        with open(os.path.join(a.onnx_dir, "depth.json")) as fh:
+            meta = json.load(fh)
+        import onnxruntime as ort
+        predict = onnx_fn(ort.InferenceSession(os.path.join(a.onnx_dir, "depth.onnx"),
+                                               providers=["CPUExecutionProvider"]), meta["mean"], meta["std"])
+    else:
+        model = DepthModel(a.checkpoint, weights=a.weights)
+        predict = model.predict
+    if not a.onnx_dir and model.output_type != "metric":
         raise SystemExit("This evaluation needs a depth-up-to-scale model. "
                          "Relative Depth Anything outputs inverse depth with an "
                          "unknown shift — see explore_depth.py.")
@@ -82,16 +97,26 @@ def main():
         frames = sorted(int(f[:-4]) for f in os.listdir(gt_dir))[::a.frame_step]
  
         for f in frames:
-            img, K = crop_bottom_centre(drive.load_image(f), drive.K)
-            gt = crop_bottom_centre(drive.load_depth_gt(f))
-            if a.resize == 1.0:
-                pred = model.predict(img)
+            if a.size:
+                # exactly the server's input: bottom-anchored crop + resize, K follows;
+                # the GT is cropped to the same box and the prediction brought back to it
+                full = drive.load_image(f)
+                img_m, K_fit, (y0, x0, ch, cw) = fit_to_size(full, drive.K, *a.size)
+                img, gt = full[y0:y0 + ch, x0:x0 + cw], drive.load_depth_gt(f)[y0:y0 + ch, x0:x0 + cw]
+                pred_fit = predict(img_m)
+                pred = cv2.resize(pred_fit, (cw, ch), interpolation=cv2.INTER_LINEAR)
             else:
-                h, w = img.shape[:2]
-                small = cv2.resize(img, (round(w * a.resize), round(h * a.resize)),
-                                   interpolation=cv2.INTER_AREA)
-                pred = cv2.resize(model.predict(small), (w, h),
-                                  interpolation=cv2.INTER_LINEAR)
+                img, K = crop_bottom_centre(drive.load_image(f), drive.K)
+                gt = crop_bottom_centre(drive.load_depth_gt(f))
+                if a.resize == 1.0:
+                    pred = predict(img)
+                else:
+                    h, w = img.shape[:2]
+                    small = cv2.resize(img, (round(w * a.resize), round(h * a.resize)),
+                                       interpolation=cv2.INTER_AREA)
+                    pred = cv2.resize(predict(small), (w, h),
+                                      interpolation=cv2.INTER_LINEAR)
+                pred_fit, K_fit = pred, K
             m = valid_mask(gt)
  
             per["raw"].append(compute_depth_metrics(pred, gt))
@@ -99,7 +124,7 @@ def main():
             s_oracle = np.median(gt[m]) / np.median(pred[m])
             per["oracle"].append(compute_depth_metrics(pred * s_oracle, gt))
  
-            fit = estimate_metric_scale(pred, K, KITTI_CAMERA_HEIGHT)
+            fit = estimate_metric_scale(pred_fit, K_fit, KITTI_CAMERA_HEIGHT)
             if not fit["valid"]:
                 refused.append((name, f, fit["reason"]))
                 continue
@@ -125,6 +150,10 @@ def main():
               "resize": a.resize,
               "frames_total": len(per["raw"]), "frames_refused": len(refused),
               "refused": refused[:20]}
+    if a.size:
+        report.update(size=a.size, backend="onnx" if a.onnx_dir else "pytorch",
+                      worst_near_frames=[{"drive": w[3], "frame": w[4], "near_abs_rel": w[1], "near_pixels": w[2],
+                                          "image": f"depth_error_{a.tag}_{w[3][17:21]}_{w[4]:03d}.png"} for w in worst])
     print(f"\nframes: {len(per['raw'])}, plane fit refused on {len(refused)}")
  
     cols = ["abs_rel", "sq_rel", "rmse", "rmse_log", "d1", "d2", "d3"]
@@ -139,7 +168,9 @@ def main():
     if scales:
         report["scale"] = {"median_s": float(np.median(scales)),
                            "median_s_over_oracle": float(np.median(ratios)),
-                           "p90_abs_scale_error": float(np.percentile(np.abs(np.array(ratios) - 1), 90))}
+                           "p90_abs_scale_error": float(np.percentile(np.abs(np.array(ratios) - 1), 90)),
+                           # share of frames whose camera-height scale is within 6% of the oracle
+                           "frac_within_6pct": float(np.mean(np.abs(np.array(ratios) - 1) <= 0.06))}
         print(f"\nheight-based scale s: median {np.median(scales):.3f} "
               f"(1.0 = network already in correct metres)")
         print(f"s / s_oracle: median {np.median(ratios):.3f}, "

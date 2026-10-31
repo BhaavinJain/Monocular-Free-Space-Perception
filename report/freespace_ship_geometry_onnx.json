@@ -1,0 +1,47 @@
+{
+  "tag": "ship_geometry_onnx",
+  "weights": null,
+  "scale": "height",
+  "drivable": "none",
+  "robot_radius_m": 1.0,
+  "cell_m": 0.1,
+  "x_max_m": 20.0,
+  "y_half_m": 10.0,
+  "frames_refused": 0,
+  "refused": [],
+  "metrics": {
+    "all": {
+      "free_iou": 0.9175801611119886,
+      "false_free_rate": 0.02620609501246047,
+      "missed_obstacle_rate": 0.15053280267043267,
+      "cells_evaluated": 108198,
+      "false_free_rate_inflated": 0.001887663073115483
+    },
+    "0-10m": {
+      "free_iou": 0.9700974215556717,
+      "false_free_rate": 0.00767054385413392,
+      "missed_obstacle_rate": 0.16792842395044735,
+      "cells_evaluated": 33748,
+      "false_free_rate_inflated": 3.4795921917951215e-05
+    },
+    "10-15m": {
+      "free_iou": 0.9466155736266307,
+      "false_free_rate": 0.017726513886781,
+      "missed_obstacle_rate": 0.15921483097055616,
+      "cells_evaluated": 37270,
+      "false_free_rate_inflated": 0.0019499756253046837
+    },
+    "15-20m": {
+      "free_iou": 0.8324176837137274,
+      "false_free_rate": 0.05579255541614387,
+      "missed_obstacle_rate": 0.14371902607196724,
+      "cells_evaluated": 35069,
+      "false_free_rate_inflated": 0.004937646388554789
+    }
+  },
+  "size": [
+    294,
+    392
+  ],
+  "backend": "onnx"
+}

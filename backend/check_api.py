@@ -56,6 +56,7 @@ def main():
     p.add_argument("--test_images", default="backend/test_images")
     p.add_argument("--benchmark", default="report/benchmark.json")
     p.add_argument("--report_dir", default="report")
+    p.add_argument("--phone_height", type=float, default=1.1, help="camera height of the owner's phone photos (m)")
     a = p.parse_args()
     checks, findings = [], []
 
@@ -129,11 +130,15 @@ def main():
 
     # ---- bad inputs ----
     good = jpeg(small)
+    bmp = io.BytesIO()
+    Image.fromarray(small).save(bmp, "BMP")
+    bmp = bmp.getvalue()
     buf = io.BytesIO()
     Image.new("1", (10000, 5000)).save(buf, "PNG")          # 50 MP, a few kB on disk
     bad = [("11 MB file", {"file": ("big.jpg", os.urandom(11 * 1024 * 1024), "image/jpeg")}, {}, 413),
            ("decompression bomb (50 MP PNG)", {"file": ("bomb.png", buf.getvalue(), "image/png")}, {}, 413),
            ("text file named .jpg", {"file": ("x.jpg", b"hello, not an image", "image/jpeg")}, {}, 415),
+           ("BMP (readable, but not an accepted format)", {"file": ("x.bmp", bmp, "image/bmp")}, {}, 415),
            ("truncated JPEG", {"file": ("t.jpg", jpeg(full)[:20000], "image/jpeg")}, {}, 400),
            ("image too small (200x150)", {"file": ("s.jpg", jpeg(small[::2, ::2]), "image/jpeg")}, {}, 400),
            ("both sample_id and file", {"file": ("g.jpg", good, "image/jpeg")}, {"sample_id": samples[0]["id"]}, 400),
@@ -144,7 +149,36 @@ def main():
            ("unknown sample_id", None, {"sample_id": "nope"}, 404)]
     for name, files, data, code in bad:
         r = post(files=files, **data)
-        check(f"reject: {name} -> {code}", r.status_code == code, got=r.status_code, detail=r.json().get("detail"))
+        detail = r.json().get("detail")
+        ok = r.status_code == code and (code != 415 or "HEIC/HEIF" in str(detail))   # 415 must name the formats
+        check(f"reject: {name} -> {code}", ok, got=r.status_code, detail=detail)
+
+    # ---- phone photos (owner's, git-ignored; skipped when absent) ----
+    # Every photo must be read with its EXIF focal length; a JPEG and a HEIC from the
+    # same phone and orientation must give the same intrinsics. Results are recorded.
+    phones = {}
+    for fn in sorted(os.listdir(a.test_images)) if os.path.isdir(a.test_images) else []:
+        ext = os.path.splitext(fn)[1].lower()
+        if ext not in (".jpg", ".jpeg", ".heic", ".heif"):
+            continue
+        with open(os.path.join(a.test_images, fn), "rb") as fh:
+            data = fh.read()
+        mime = "image/heic" if ext in (".heic", ".heif") else "image/jpeg"
+        r = post(files={"file": (fn, data, mime)}, camera_height=a.phone_height)
+        b = r.json()
+        phones[fn] = {"http": r.status_code, "file_mb": round(len(data) / 1e6, 2), "status": b.get("status"),
+                      "reason": b.get("reason"), "input": b.get("input"), "camera": b.get("camera"),
+                      "scale": b.get("scale"), "tilt_deg": b.get("tilt_deg"), "verdict": (b.get("verdict") or {}).get("text"),
+                      "server_ms": (b.get("timings_ms") or {}).get("total")}
+        check(f"phone photo {fn}: read, FOV from EXIF", r.status_code == 200 and b["camera"]["fov_source"] == "exif_35mm",
+              **{k: phones[fn][k] for k in ("status", "reason", "scale", "verdict")}, fx=b.get("camera", {}).get("fx"))
+    jpgs = [v for k, v in phones.items() if k.lower().endswith((".jpg", ".jpeg"))]
+    heics = [v for k, v in phones.items() if k.lower().endswith((".heic", ".heif"))]
+    if jpgs and heics:
+        j, h = jpgs[0], heics[0]
+        check("HEIC and JPEG: same model size and intrinsics",
+              j["input"]["model_hw"] == h["input"]["model_hw"] and abs(j["camera"]["fx"] / h["camera"]["fx"] - 1) < 1e-9,
+              jpeg_fx=j["camera"]["fx"], heic_fx=h["camera"]["fx"], model_hw=h["input"]["model_hw"])
 
     # ---- refused plane fit, at pipeline level ----
     fns = []
@@ -187,7 +221,7 @@ def main():
         print(f"[INFO] wall_with_floor.jpg: {borderline}")
 
     report = {"passed": all(c["passed"] for c in checks), "findings": findings,
-              "checks": checks, "borderline_wall_with_floor": borderline}
+              "checks": checks, "borderline_wall_with_floor": borderline, "phone_photos": phones}
     path = os.path.join(a.report_dir, "api_check.json")
     with open(path, "w") as fh:
         json.dump(report, fh, indent=2, default=float)

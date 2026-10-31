@@ -17,8 +17,8 @@ from depth_model import DepthModel, METRIC_CKPT
 from eval_depth import crop_bottom_centre, val_drives
 from ground_plane import fit_ground
 from kitti_loader import KittiRawDrive
-from pipeline import (GREEN, GREY, MAGENTA, RED, UPSAMPLE, counts, fuse_labels, paint_photo,
-                      ratios, upsample_rows)
+from pipeline import (GREEN, GREY, MAGENTA, RED, UPSAMPLE, counts, fit_to_size, fuse_labels,
+                      onnx_fn, paint_photo, ratios, run, upsample_rows)
 from planner import astar, pick_start_goal
 from pointcloud import classify_heights, floor_frame
 from scale import estimate_metric_scale
@@ -51,11 +51,30 @@ def main():
     p.add_argument("--report_dir", default="report")
     p.add_argument("--images", type=int, default=3)
     p.add_argument("--drivable", default="none", choices=["none", "road", "road+sidewalk"])
+    p.add_argument("--size", type=int, nargs=2, default=None, metavar=("H", "W"),
+                   help="the SHIPPING path: pipeline.fit_to_size to H x W, then pipeline.run "
+                        "(exactly what the server runs; height scaling)")
+    p.add_argument("--onnx_dir", default=None, help="use the ONNX models (the server's) instead of PyTorch")
     a = p.parse_args()
- 
-    model = DepthModel(a.checkpoint, weights=a.weights)
-    seg = None if a.drivable == "none" else Segmenter()
-    drivable_ids = None if seg is None else seg.ids(a.drivable.split("+"))
+    if a.size and a.scale != "height":
+        p.error("--size runs pipeline.run, which always uses height scaling")
+    if a.onnx_dir and not a.size:
+        p.error("--onnx_dir needs --size")
+
+    if a.onnx_dir:
+        import onnxruntime as ort
+        fns = []
+        for k in ("depth", "segformer"):
+            with open(os.path.join(a.onnx_dir, f"{k}.json")) as fh:
+                meta = json.load(fh)
+            fns.append(onnx_fn(ort.InferenceSession(os.path.join(a.onnx_dir, f"{k}.onnx"),
+                                                    providers=["CPUExecutionProvider"]), meta["mean"], meta["std"]))
+        depth_fn, seg_fn = fns
+    else:
+        model = DepthModel(a.checkpoint, weights=a.weights)
+        seg = None if a.drivable == "none" else Segmenter()
+        drivable_ids = None if seg is None else seg.ids(a.drivable.split("+"))
+        depth_fn, seg_fn = model.predict, None if seg is None else seg.predict
     drives, _ = val_drives(a.root, a.depth_root)
     xs, ys = cell_centres(CELL, X_MAX, Y_HALF)
     dist = np.hypot(xs, ys)
@@ -72,28 +91,38 @@ def main():
  
         for f in frames:
             full = drive.load_image(f)
-            img, K = crop_bottom_centre(full, drive.K)
-            H, W = img.shape[:2]
- 
-            # ---- predicted grid: camera only ----
-            pred = model.predict(img)
-            fit = estimate_metric_scale(pred, K, KITTI_CAMERA_HEIGHT)
-            if not fit["valid"]:
-                refused.append((name, f, fit["reason"]))     # a real system outputs
-                continue                                     # nothing metric here
-            if a.scale == "height":
-                depth, T = pred * fit["scale"], floor_frame(fit["n"], KITTI_CAMERA_HEIGHT)
-            else:                                            # network's own metres
-                depth, T = pred, floor_frame(fit["n"], fit["d"])
-            depth_k, K_k = upsample_rows(depth, K)
-            pts = transform_points(backproject(depth_k, K_k).reshape(-1, 3), T)
-            labels = classify_heights(pts)
-            if seg is not None:                              # Phase 4 fusion
-                sem = seg.predict(img)
-                sem_k = cv2.resize(sem, (W, UPSAMPLE * H), interpolation=cv2.INTER_NEAREST)
-                labels = fuse_labels(labels, sem_k.reshape(-1), drivable_ids)
-            pred_grid = build_grid(pts, labels, CELL, X_MAX, Y_HALF)
-            pred_inf = inflate(pred_grid, ROBOT_RADIUS, CELL)
+            if a.size:                                       # the shipping path
+                img, K, _ = fit_to_size(full, drive.K, *a.size)
+                H, W = img.shape[:2]
+                out = run(img, K, KITTI_CAMERA_HEIGHT, depth_fn, seg_fn, drivable=a.drivable)
+                if out["status"] != "ok":
+                    refused.append((name, f, out["reason"]))
+                    continue
+                depth, T = out["depth"], out["T_floor_cam"]
+                pred_grid, pred_inf = out["grid"], out["grid_inflated"]
+            else:
+                img, K = crop_bottom_centre(full, drive.K)
+                H, W = img.shape[:2]
+
+                # ---- predicted grid: camera only ----
+                pred = depth_fn(img)
+                fit = estimate_metric_scale(pred, K, KITTI_CAMERA_HEIGHT)
+                if not fit["valid"]:
+                    refused.append((name, f, fit["reason"]))     # a real system outputs
+                    continue                                     # nothing metric here
+                if a.scale == "height":
+                    depth, T = pred * fit["scale"], floor_frame(fit["n"], KITTI_CAMERA_HEIGHT)
+                else:                                            # network's own metres
+                    depth, T = pred, floor_frame(fit["n"], fit["d"])
+                depth_k, K_k = upsample_rows(depth, K)
+                pts = transform_points(backproject(depth_k, K_k).reshape(-1, 3), T)
+                labels = classify_heights(pts)
+                if seg is not None:                              # Phase 4 fusion
+                    sem = seg.predict(img)
+                    sem_k = cv2.resize(sem, (W, UPSAMPLE * H), interpolation=cv2.INTER_NEAREST)
+                    labels = fuse_labels(labels, sem_k.reshape(-1), drivable_ids)
+                pred_grid = build_grid(pts, labels, CELL, X_MAX, Y_HALF)
+                pred_inf = inflate(pred_grid, ROBOT_RADIUS, CELL)
  
             # ---- ground-truth grid: LiDAR, with its own floor plane ----
             scan = drive.load_velodyne(f)
@@ -114,12 +143,15 @@ def main():
             if len(worst) < a.images or n_ff > worst[-1][0]:
                 # the photo overlay uses one 3D point per original pixel
                 px = transform_points(backproject(depth, K).reshape(-1, 3), T)
-                px_labels = classify_heights(px)
-                if seg is not None:
-                    px_labels = fuse_labels(px_labels, sem.reshape(-1), drivable_ids)
+                if a.size:
+                    px_labels, path = out["px_labels"].reshape(-1), out["path_cells"]
+                else:
+                    px_labels = classify_heights(px)
+                    if seg is not None:
+                        px_labels = fuse_labels(px_labels, sem.reshape(-1), drivable_ids)
+                    start, goal = pick_start_goal(pred_inf)
+                    path = astar(pred_inf, start, goal) if start is not None else None
                 painted = paint_photo(img, px, px_labels, pred_grid, CELL, X_MAX, Y_HALF, gt_grid)
-                start, goal = pick_start_goal(pred_inf)
-                path = astar(pred_inf, start, goal) if start is not None else None
                 worst.append((n_ff, name, f, painted, pred_grid, gt_grid, path, T, K))
                 worst.sort(key=lambda w: -w[0])
                 del worst[a.images:]
@@ -131,6 +163,10 @@ def main():
               "cell_m": CELL, "x_max_m": X_MAX, "y_half_m": Y_HALF,
               "frames_refused": len(refused), "refused": refused[:20],
               "metrics": {k: ratios(c) for k, c in totals.items()}}
+    if a.size:
+        report.update(size=a.size, backend="onnx" if a.onnx_dir else "pytorch",
+                      worst_frames=[{"drive": w[1], "frame": w[2], "false_free_cells": w[0],
+                                     "image": f"bev_{a.tag}_{w[1][17:21]}_{w[2]:03d}.png"} for w in worst])
     for k, c in totals_inf.items():
         report["metrics"][k]["false_free_rate_inflated"] = c[2] / max(c[3], 1)
     print(f"\nframes refused: {len(refused)}")

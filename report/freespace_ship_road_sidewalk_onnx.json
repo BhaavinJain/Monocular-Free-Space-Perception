@@ -1,0 +1,67 @@
+{
+  "tag": "ship_road_sidewalk_onnx",
+  "weights": null,
+  "scale": "height",
+  "drivable": "road+sidewalk",
+  "robot_radius_m": 1.0,
+  "cell_m": 0.1,
+  "x_max_m": 20.0,
+  "y_half_m": 10.0,
+  "frames_refused": 0,
+  "refused": [],
+  "metrics": {
+    "all": {
+      "free_iou": 0.9092155497901242,
+      "false_free_rate": 0.024862003438602842,
+      "missed_obstacle_rate": 0.14109641802542047,
+      "cells_evaluated": 108198,
+      "false_free_rate_inflated": 0.0016130413680874754
+    },
+    "0-10m": {
+      "free_iou": 0.9637643298398746,
+      "false_free_rate": 0.0076582278481012655,
+      "missed_obstacle_rate": 0.16655196145905024,
+      "cells_evaluated": 33748,
+      "false_free_rate_inflated": 3.5260930888575456e-05
+    },
+    "10-15m": {
+      "free_iou": 0.9361789331928099,
+      "false_free_rate": 0.017089813733325136,
+      "missed_obstacle_rate": 0.1515812431842966,
+      "cells_evaluated": 37270,
+      "false_free_rate_inflated": 0.0016662145929399
+    },
+    "15-20m": {
+      "free_iou": 0.8236600533017471,
+      "false_free_rate": 0.0523401899408032,
+      "missed_obstacle_rate": 0.13240680887739711,
+      "cells_evaluated": 35069,
+      "false_free_rate_inflated": 0.0043645699614890884
+    }
+  },
+  "size": [
+    294,
+    392
+  ],
+  "backend": "onnx",
+  "worst_frames": [
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 195,
+      "false_free_cells": 143,
+      "image": "bev_ship_road_sidewalk_onnx_0023_195.png"
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 115,
+      "false_free_cells": 134,
+      "image": "bev_ship_road_sidewalk_onnx_0023_115.png"
+    },
+    {
+      "drive": "2011_09_26_drive_0023_sync",
+      "frame": 465,
+      "false_free_cells": 128,
+      "image": "bev_ship_road_sidewalk_onnx_0023_465.png"
+    }
+  ]
+}

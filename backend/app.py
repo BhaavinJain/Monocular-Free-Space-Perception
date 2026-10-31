@@ -27,6 +27,7 @@ from typing import Literal
 import cv2
 import numpy as np
 import onnxruntime as ort
+import pillow_heif
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -46,6 +47,13 @@ MAX_PIXELS = 40_000_000         # a small file can still decode to a huge image 
 DEFAULT_HFOV = 70.0
 F35_DIAGONAL_MM = 43.27         # the 35 mm-equivalent focal length is defined by the frame diagonal
 Image.MAX_IMAGE_PIXELS = MAX_PIXELS
+# iPhones save HEIC by default. pillow-heif teaches Pillow to read it, EXIF included;
+# it returns the pixels already rotated upright, with EXIF orientation reset to 1.
+pillow_heif.register_heif_opener()
+# Pillow format name -> what users call it. iPhone JPEGs open as "MPO" (a JPEG with
+# extra embedded images), so it must count as JPEG.
+ACCEPTED = {"JPEG": "JPEG", "MPO": "JPEG", "PNG": "PNG", "WEBP": "WebP", "HEIF": "HEIC/HEIF"}
+ACCEPTED_TEXT = "JPEG, PNG, WebP or HEIC/HEIF"
 
 so = ort.SessionOptions()
 so.intra_op_num_threads, so.inter_op_num_threads = THREADS, 1
@@ -142,7 +150,9 @@ def read_upload(file):
     except Image.DecompressionBombError:
         raise HTTPException(413, f"image larger than {MAX_PIXELS // 1_000_000} megapixels")
     except UnidentifiedImageError:
-        raise HTTPException(415, "not an image file Pillow can read (JPEG, PNG, WebP, ...)")
+        raise HTTPException(415, f"not a readable image; send {ACCEPTED_TEXT}")
+    if im.format not in ACCEPTED:
+        raise HTTPException(415, f"unsupported image format ({im.format}); send {ACCEPTED_TEXT}")
     if im.width * im.height > MAX_PIXELS:
         raise HTTPException(413, f"image larger than {MAX_PIXELS // 1_000_000} megapixels")
     try:
