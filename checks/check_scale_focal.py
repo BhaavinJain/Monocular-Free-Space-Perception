@@ -31,12 +31,12 @@ import onnxruntime as ort
 import pillow_heif
 from PIL import Image, ImageOps
 
-from camera import backproject
-from ground_plane import fit_ground, tilt_deg
-from kitti_loader import KittiRawDrive
-from metrics import valid_mask
-from pipeline import fit_to_size, onnx_fn
-from scale import S_MAX, S_MIN
+from freespace.camera import backproject
+from freespace.ground_plane import fit_ground, tilt_deg
+from freespace.kitti_loader import KittiRawDrive
+from freespace.metrics import valid_mask
+from freespace.pipeline import fit_to_size, onnx_fn
+from freespace.scale import S_MAX, S_MIN
 
 KITTI_H = 1.65
 SWEEP = [(294, 392), (518, 392), (532, 700), (378, 504), (378, 280), (350, 1218)]   # benchmark.py's sizes

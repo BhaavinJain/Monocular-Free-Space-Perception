@@ -35,12 +35,12 @@ import torch.nn.functional as F
 import transformers
 from transformers.models.depth_anything import modeling_depth_anything as mda
 
-from depth_model import METRIC_CKPT, DepthModel, to_input_tensor
-from eval_depth import crop_bottom_centre
-from eval_freespace import KITTI_CAMERA_HEIGHT
-from kitti_loader import KittiRawDrive
-from pipeline import onnx_fn, run
-from segmenter import SEG_CKPT, Segmenter
+from models.depth_model import METRIC_CKPT, DepthModel, to_input_tensor
+from evaluation.eval_depth import crop_bottom_centre
+from evaluation.eval_freespace import KITTI_CAMERA_HEIGHT
+from freespace.kitti_loader import KittiRawDrive
+from freespace.pipeline import onnx_fn, run
+from models.segmenter import SEG_CKPT, Segmenter
 
 EXTRA_HW = [(518, 392), (476, 630)]     # multiples of 14; portrait and 4:3-ish, unlike KITTI
 

@@ -21,9 +21,9 @@ import matplotlib.pyplot as plt
 import contextlib
 import os
 
-from camera import (transform_points, project, in_image_mask, backproject, lidar_to_depth_map)
+from freespace.camera import (transform_points, project, in_image_mask, backproject, lidar_to_depth_map)
 
-from kitti_loader import KittiRawDrive
+from freespace.kitti_loader import KittiRawDrive
 
 def check_1_overlay(drive, frame, out_path):
     img = drive.load_image(frame)

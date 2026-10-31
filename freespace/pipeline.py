@@ -16,12 +16,12 @@ import time
 import cv2
 import numpy as np
 
-from bev import FREE, OCCUPIED, build_grid, cell_centres, cell_index, inflate, visible_mask
-from camera import backproject, in_image_mask, project, transform_points
-from ground_plane import tilt_deg
-from planner import astar, pick_start_goal
-from pointcloud import GROUND, HOLE, IGNORE, OBSTACLE, classify_heights, floor_frame
-from scale import estimate_metric_scale
+from freespace.bev import FREE, OCCUPIED, build_grid, cell_centres, cell_index, inflate, visible_mask
+from freespace.camera import backproject, in_image_mask, project, transform_points
+from freespace.ground_plane import tilt_deg
+from freespace.planner import astar, pick_start_goal
+from freespace.pointcloud import GROUND, HOLE, IGNORE, OBSTACLE, classify_heights, floor_frame
+from freespace.scale import estimate_metric_scale
 
 UPSAMPLE = 4    # rows per image row before back-projection (see upsample_rows)
 # outdoor = the KITTI setting the Phase 3-4 numbers were measured with.

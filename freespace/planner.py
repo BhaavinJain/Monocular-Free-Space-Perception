@@ -3,7 +3,7 @@ import heapq
 import cv2
 import numpy as np
 
-from bev import FREE
+from freespace.bev import FREE
 
 STEPS = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 

@@ -2,7 +2,7 @@
 Measure the deployed service itself (Azure Container Apps) — these are the
 numbers the UI displays.
 
-    python space/space_check.py
+    python -m deploy.space_check
 
   hardware     what Azure gives the app (az containerapp show: vCPU, memory,
                region, scaling) and what the container sees (/health: CPU model,

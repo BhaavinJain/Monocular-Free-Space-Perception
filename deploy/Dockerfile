@@ -1,12 +1,10 @@
-# Image for the Hugging Face Space (Docker SDK). Build locally from the project root:
-#     docker build -f space/Dockerfile -t freespace .
-# space/deploy.py copies this file to the Space's root and every other file to the
-# same relative path it has here, so the COPY lines work in both places.
+# The server image (Azure Container Apps, pulled from ghcr.io). Build from the project root:
+#     docker build -f deploy/Dockerfile -t freespace:local .
 FROM python:3.12-slim
 # links the ghcr.io package to the GitHub repo
 LABEL org.opencontainers.image.source=https://github.com/BhaavinJain/Monocular-Free-Space-Perception
 
-# HF Spaces run the container as uid 1000; own everything as that user, never root
+# run as uid 1000 and own everything as that user, never root
 RUN useradd -m -u 1000 user
 USER user
 ENV HOME=/home/user \
@@ -17,8 +15,8 @@ ENV HOME=/home/user \
     ORT_THREADS=2
 WORKDIR /home/user/app
 
-COPY --chown=user space/requirements.txt space/requirements.txt
-RUN pip install --no-cache-dir --user -r space/requirements.txt
+COPY --chown=user deploy/requirements.txt deploy/requirements.txt
+RUN pip install --no-cache-dir --user -r deploy/requirements.txt
 
 # Models and gallery at BUILD time, pinned to one commit of the public model repo:
 # a cold start never downloads anything, and changing the served model is a
@@ -31,7 +29,10 @@ ARG MODEL_REVISION=d272633e7b8f04109ead2adcb2b97d99299e423e
 RUN python -c "import os; from huggingface_hub import snapshot_download; snapshot_download(os.environ['MODEL_REPO'], revision=os.environ['MODEL_REVISION'], local_dir='models')" \
  && rm -rf /home/user/.cache/huggingface models/.cache
 
-COPY --chown=user pipeline.py bev.py camera.py ground_plane.py planner.py pointcloud.py scale.py metrics.py ./
+# the server's part of the package only (no kitti_loader: KITTI is not used by the server)
+COPY --chown=user freespace/__init__.py freespace/pipeline.py freespace/bev.py freespace/camera.py \
+     freespace/ground_plane.py freespace/planner.py freespace/pointcloud.py freespace/scale.py \
+     freespace/metrics.py freespace/
 COPY --chown=user backend/app.py backend/app.py
 
 EXPOSE 7860

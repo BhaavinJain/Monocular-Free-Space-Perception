@@ -10,19 +10,19 @@ import matplotlib.pyplot as plt
  
 from matplotlib.patches import Circle, Patch
  
-from bev import (FREE, OCCUPIED, UNKNOWN, build_grid, cell_centres,
+from freespace.bev import (FREE, OCCUPIED, UNKNOWN, build_grid, cell_centres,
                  inflate, lidar_to_bev)
-from camera import backproject, lidar_to_depth_map, project, transform_points
-from depth_model import DepthModel, METRIC_CKPT
-from eval_depth import crop_bottom_centre, val_drives
-from ground_plane import fit_ground
-from kitti_loader import KittiRawDrive
-from pipeline import (BLUE, GREY, ORANGE, PATH, UPSAMPLE, YELLOW, counts, fit_to_size, fuse_labels,
+from freespace.camera import backproject, lidar_to_depth_map, project, transform_points
+from models.depth_model import DepthModel, METRIC_CKPT
+from evaluation.eval_depth import crop_bottom_centre, val_drives
+from freespace.ground_plane import fit_ground
+from freespace.kitti_loader import KittiRawDrive
+from freespace.pipeline import (BLUE, GREY, ORANGE, PATH, UPSAMPLE, YELLOW, counts, fit_to_size, fuse_labels,
                       onnx_fn, paint_photo, ratios, run, upsample_rows)
-from planner import astar, pick_start_goal
-from pointcloud import classify_heights, floor_frame
-from scale import estimate_metric_scale
-from segmenter import Segmenter
+from freespace.planner import astar, pick_start_goal
+from freespace.pointcloud import classify_heights, floor_frame
+from freespace.scale import estimate_metric_scale
+from models.segmenter import Segmenter
  
 KITTI_CAMERA_HEIGHT = 1.65
 # Grid for KITTI: the camera sees no road closer than ~5.9 m, so the

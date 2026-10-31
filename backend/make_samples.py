@@ -23,12 +23,12 @@ import os
 import cv2
 import numpy as np
 
-from bev import lidar_to_bev
-from camera import backproject, lidar_to_depth_map
-from ground_plane import fit_ground
-from kitti_loader import KittiRawDrive
-from pipeline import PRESETS, fit_to_size
-from pointcloud import floor_frame
+from freespace.bev import lidar_to_bev
+from freespace.camera import backproject, lidar_to_depth_map
+from freespace.ground_plane import fit_ground
+from freespace.kitti_loader import KittiRawDrive
+from freespace.pipeline import PRESETS, fit_to_size
+from freespace.pointcloud import floor_frame
 
 KITTI_CAMERA_HEIGHT = 1.65
 MODEL_HW = (294, 392)

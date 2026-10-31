@@ -33,9 +33,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from PIL import Image, ImageOps, UnidentifiedImageError
 
-from bev import UNKNOWN
-from metrics import compute_depth_metrics
-from pipeline import PRESETS, counts, fit_to_size, onnx_fn, ratios, run
+from freespace.bev import UNKNOWN
+from freespace.metrics import compute_depth_metrics
+from freespace.pipeline import PRESETS, counts, fit_to_size, onnx_fn, ratios, run
 
 MODEL_DIR = os.environ.get("MODEL_DIR", "checkpoints/onnx")
 SAMPLE_DIR = os.environ.get("SAMPLE_DIR", "backend/samples")

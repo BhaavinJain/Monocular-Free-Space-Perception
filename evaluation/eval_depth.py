@@ -7,11 +7,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
  
-from depth_model import DepthModel, METRIC_CKPT
-from kitti_loader import KittiRawDrive
-from metrics import compute_depth_metrics, range_stratified, average_metrics, valid_mask
-from pipeline import fit_to_size, onnx_fn
-from scale import estimate_metric_scale
+from models.depth_model import DepthModel, METRIC_CKPT
+from freespace.kitti_loader import KittiRawDrive
+from freespace.metrics import compute_depth_metrics, range_stratified, average_metrics, valid_mask
+from freespace.pipeline import fit_to_size, onnx_fn
+from freespace.scale import estimate_metric_scale
  
 KITTI_CAMERA_HEIGHT = 1.65
 CROP_H, CROP_W = 350, 1218

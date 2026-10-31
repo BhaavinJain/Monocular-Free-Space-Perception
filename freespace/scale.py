@@ -1,5 +1,5 @@
-from camera import backproject
-from ground_plane import fit_ground
+from freespace.camera import backproject
+from freespace.ground_plane import fit_ground
 
 def recover_scale(plane_d, camera_height):   # s = h / d. Example: h = 1.65 m, d = 0.85 units -> s = 1.94 m/unit
     if plane_d is None or plane_d <= 0:

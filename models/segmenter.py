@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 from transformers import SegformerForSemanticSegmentation
 
-from depth_model import lead_normalisation, to_input_tensor
-from pipeline import fuse_labels      # re-exported: defined once, in the torch-free pipeline
+from models.depth_model import lead_normalisation, to_input_tensor
+from freespace.pipeline import fuse_labels      # re-exported: defined once, in the torch-free pipeline
 
 SEG_CKPT = "nvidia/segformer-b0-finetuned-cityscapes-1024-1024"
 

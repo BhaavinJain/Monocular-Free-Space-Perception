@@ -31,9 +31,9 @@ import onnxruntime as ort
 import requests
 from PIL import Image, ImageOps
 
-from bev import UNKNOWN
-from kitti_loader import KittiRawDrive
-from pipeline import CITYSCAPES, counts, fit_to_size, onnx_fn, ratios, run
+from freespace.bev import UNKNOWN
+from freespace.kitti_loader import KittiRawDrive
+from freespace.pipeline import CITYSCAPES, counts, fit_to_size, onnx_fn, ratios, run
 
 # (frame, x0): top-of-image crops of drive 0023, 150 x 200 (4:3) — rows 0-149
 # are above KITTI's horizon (cy ~ 173), so the lower 40% holds no road

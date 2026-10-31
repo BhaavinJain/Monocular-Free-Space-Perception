@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import os
 import contextlib
 
-from depth_model import DepthModel, RELATIVE_CKPT, METRIC_CKPT
-from kitti_loader import KittiRawDrive
-from metrics import valid_mask
+from models.depth_model import DepthModel, RELATIVE_CKPT, METRIC_CKPT
+from freespace.kitti_loader import KittiRawDrive
+from freespace.metrics import valid_mask
 
 def fit_hypotheses(pred, gt):
     # pred and gt arrive as 1-D arrays: the network's value and the LiDAR depth at each valid pixel, in matching order

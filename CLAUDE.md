@@ -39,43 +39,66 @@ Results live in `report/` (`*.json`, `*.txt`) and `report/image/`.
 
 ## Repository map
 
-Validated core — DO NOT MODIFY without asking first. Phase 5 must IMPORT these,
-not rewrite them:
+Every script runs FROM THE REPO ROOT as a module (`python -m checks.check_pipeline`);
+outputs go to `report/` and `report/image/`. Each folder is a package (`__init__.py`),
+so `models`, `deploy` etc. can never be shadowed by an installed package of that name.
+
+**`freespace/`** — the validated core (every file below EXCEPT `pipeline.py`):
+DO NOT MODIFY without asking first. Phase 5 must IMPORT these
+(`from freespace.bev import ...`), not rewrite them. `pipeline.py` is Phase 5 code
+and may be changed like any other:
 
 | File | Role |
 |---|---|
-| `camera.py` | calibration parsing, transforms, project / backproject, LiDAR -> depth map |
-| `kitti_loader.py` | KITTI raw drive loading (KITTI only; not used by the server) |
-| `ground_plane.py` | RANSAC plane fit with noise-adaptive refinement, validity check |
-| `scale.py` | `estimate_metric_scale`: depth -> plane -> s = h / d |
-| `metrics.py` | depth metrics |
-| `pointcloud.py` | `floor_frame(n, d)`, `classify_heights` |
-| `bev.py` | `build_grid`, `cell_index`, `visible_mask`, `inflate`, `lidar_to_bev` |
-| `planner.py` | `astar`, `pick_start_goal` |
+| `freespace/camera.py` | calibration parsing, transforms, project / backproject, LiDAR -> depth map |
+| `freespace/kitti_loader.py` | KITTI raw drive loading (KITTI only; not used by the server, not in the image) |
+| `freespace/ground_plane.py` | RANSAC plane fit with noise-adaptive refinement, validity check |
+| `freespace/scale.py` | `estimate_metric_scale`: depth -> plane -> s = h / d |
+| `freespace/metrics.py` | depth metrics |
+| `freespace/pointcloud.py` | `floor_frame(n, d)`, `classify_heights` |
+| `freespace/bev.py` | `build_grid`, `cell_index`, `visible_mask`, `inflate`, `lidar_to_bev` |
+| `freespace/planner.py` | `astar`, `pick_start_goal` |
+| `freespace/pipeline.py` | Phase 5 (torch-free): `run()`, the whole pipeline for one image, models passed in as functions; also `upsample_rows`, `fuse_labels`, `paint_photo`, `onnx_fn`, `PRESETS`, `PLAIN` |
 
-Phase 5 (torch-free unless noted):
+PyTorch-based (training / evaluation only — the server must NOT import these):
 
 | File | Role |
 |---|---|
-| `pipeline.py` | `run()`: the whole pipeline for one image, models passed in as functions; also `upsample_rows`, `fuse_labels`, `paint_photo`, `onnx_fn`, `PRESETS` |
-| `check_pipeline.py` | M1 check (imports torch): `run()` grid == eval_freespace grid |
-| `export_onnx.py` | M2 (imports torch): ONNX export + parity; patches the Depth Anything head for dynamic shapes |
-| `benchmark.py` | M3: CPU latency + KITTI accuracy per input size |
+| `models/depth_model.py` | Depth Anything V2 wrapper (`DepthModel`) |
+| `models/segmenter.py` | SegFormer-B0 wrapper (`Segmenter`) |
+| `training/finetune_depth.py` | fine-tuning on KITTI (constants at the top, not argparse) |
+| `training/export_onnx.py` | M2: ONNX export + parity; patches the Depth Anything head for dynamic shapes |
+
+Evaluation (KITTI; the numbers in `report/`):
+
+| File | Role |
+|---|---|
+| `evaluation/eval_depth.py` | depth AbsRel etc. (Phase 2; `--size` / `--onnx_dir` for the shipping size) |
+| `evaluation/eval_freespace.py` | free-space metrics; the reference implementation of the full pipeline, including `upsample_rows` (4x row upsampling before back-projection — required, otherwise far rows leave gaps of UNKNOWN cells) and `paint_photo` |
+| `evaluation/benchmark.py` | M3: CPU latency + KITTI accuracy per input size |
+
+Checks and investigations:
+
+| File | Role |
+|---|---|
+| `checks/validate_projection.py` | Phase 1: LiDAR projection vs KITTI depth GT |
+| `checks/check_ground_plane.py` | plane fit on a few frames |
+| `checks/explore_depth.py` | relative vs metric depth exploration |
+| `checks/check_pipeline.py` | M1 (imports torch): `run()` grid == eval_freespace grid |
+| `checks/check_scale_focal.py` | M6: focal-aware scale check investigation (not adopted) |
+
+Server, deployment, frontend:
+
+| File | Role |
+|---|---|
 | `backend/app.py` | M4: FastAPI server (`uvicorn backend.app:app --port 7860` from the root) |
 | `backend/make_samples.py` | M4: builds the KITTI gallery (`python -m backend.make_samples`) |
 | `backend/check_api.py` | M4 check against a running server (`python -m backend.check_api --url ...`) |
-| `space/Dockerfile` (+ `.dockerignore`, `requirements.txt`) | M5: the server image (build from the root) |
-| `space/deploy.py` | M5: `--models` publishes the HF model repo (`--space` unused) |
-| `space/space_check.py` | M5: measures the live Azure service -> `report/space_check.json` |
-
-PyTorch-based (training / evaluation only — the server must NOT import these):
-`depth_model.py`, `segmenter.py`, `finetune_depth.py`.
-
-Evaluation scripts (KITTI): `validate_projection.py`, `explore_depth.py`,
-`check_ground_plane.py`, `eval_depth.py`, `eval_freespace.py`.
-`eval_freespace.py` contains the reference implementation of the full pipeline,
-including `upsample_rows` (4x row upsampling before back-projection — required,
-otherwise far rows leave gaps of UNKNOWN cells) and `paint_photo`.
+| `deploy/Dockerfile` (+ `Dockerfile.dockerignore`, `requirements.txt`) | M5: the server image (build from the root) |
+| `deploy/deploy.py` | M5: publishes the HF model repo (`python -m deploy.deploy`) |
+| `deploy/MODEL_CARD.md` | the model repo's card, uploaded by `deploy.py` |
+| `deploy/space_check.py` | M5: measures the live Azure service -> `report/space_check.json` (name kept from the Space plan, like its report) |
+| `web/` | M6: React + Vite frontend; `python web/make_results.py` builds `web/src/results.json` from `report/` |
 
 ## Data and environment (the owner's machine)
 
@@ -134,7 +157,7 @@ depth map, the occupancy grid and a planned path, with the assumptions stated on
   for Docker Spaces.)
 - ONNX model files and the gallery live in the PUBLIC Hugging Face Hub model repo
   `BhaavinJain/monocular-freespace-models`; the Docker image downloads them at BUILD
-  time, pinned to one repo commit (`MODEL_REVISION` in `space/Dockerfile`), so a cold
+  time, pinned to one repo commit (`MODEL_REVISION` in `deploy/Dockerfile`), so a cold
   start never downloads models. They are not in git.
 - Intrinsics for uploaded photos (they have no calibration):
   1. apply the EXIF orientation first (Pillow `ImageOps.exif_transpose`);
@@ -339,11 +362,11 @@ warm-up excluded) measured on the deployed service -> `report/space_check.json`
 *M5 status: DONE (2026-10-30).*
 - Model repo `BhaavinJain/monocular-freespace-models` (public, commit `d272633e`):
   `depth.onnx`, `segformer.onnx`, their JSONs, the 6-frame gallery, model card with
-  licences (`space/MODEL_CARD.md`; everything is non-commercial: SegFormer NVIDIA
+  licences (`deploy/MODEL_CARD.md`; everything is non-commercial: SegFormer NVIDIA
   licence, KITTI and Virtual KITTI 2 CC BY-NC-SA 3.0).
 - Image `ghcr.io/bhaavinjain/monocular-freespace:2920631` (public package; index
   `sha256:dc43083d...`). Built from the root with
-  `docker build -f space/Dockerfile -t freespace:local .`; runs as uid 1000, no torch;
+  `docker build -f deploy/Dockerfile -t freespace:local .`; runs as uid 1000, no torch;
   284.1 MB compressed (all 12 blobs pulled anonymously and sha256-verified before use),
   ~630 MB unpacked; memory 261 MB idle, 633 MB after a 12 MP upload. The HF download
   caches are deleted in the same RUN step. Audited before going public: no credentials,
@@ -355,9 +378,9 @@ warm-up excluded) measured on the deployed service -> `report/space_check.json`
   Linux-only bug (int64 labels vs opencv-python-headless), fixed in `pipeline.py`. On
   Azure the samples' AbsRel matches `benchmark.json` to < 5e-8 (different CPU kernels).
 - Hugging Face Space: BLOCKED (402, Docker Spaces need PRO); none created.
-  `space/README.md` and `deploy.py --space` are unused.
+  The Space card and `deploy.py --space` were removed in the repo reorganisation.
 
-*Measured on the live service* (`space/space_check.py` -> `report/space_check.json`,
+*Measured on the live service* (`deploy/space_check.py` -> `report/space_check.json`,
 2026-10-30 21:03-21:19 IST). **These are the numbers the UI displays:**
 
 | What | Median | p90 | n |
@@ -472,11 +495,21 @@ in plain words (`pipeline.PLAIN`, `nearest_obstacle.name`; `class` stays Citysca
 **M7. Polish (optional, only after M6 works end to end).**
 Mobile layout, webcam capture, `/predict/sequence`.
 
-## Useful commands (existing evaluation)
+## Useful commands (from the repo root, venv active)
 
 ```
-python validate_projection.py --frame 10 --depth_root data\kitti_depth
-python check_ground_plane.py --frames 10 50 100
-python eval_depth.py --depth_root data\kitti_depth --tag finetuned --weights checkpoints\depth_best.pt
-python eval_freespace.py --depth_root data\kitti_depth --weights checkpoints\depth_best.pt --drivable road+sidewalk --tag finetuned_road_sidewalk
+python -m checks.validate_projection --frame 10 --depth_root data\kitti_depth
+python -m checks.check_ground_plane --frames 10 50 100
+python -m checks.check_pipeline
+python -m evaluation.eval_depth --depth_root data\kitti_depth --tag finetuned --weights checkpoints\depth_best.pt
+python -m evaluation.eval_freespace --depth_root data\kitti_depth --weights checkpoints\depth_best.pt --drivable road+sidewalk --tag finetuned_road_sidewalk
+# shipping size (294 x 392, the server's ONNX models) -> the numbers on the About page
+python -m evaluation.eval_depth --depth_root data\kitti_depth --size 294 392 --onnx_dir checkpoints\onnx --tag ship_finetuned_onnx
+python -m evaluation.eval_freespace --depth_root data\kitti_depth --size 294 392 --onnx_dir checkpoints\onnx --drivable road+sidewalk --tag ship_road_sidewalk_onnx
+python -m evaluation.eval_freespace --depth_root data\kitti_depth --size 294 392 --onnx_dir checkpoints\onnx --tag ship_geometry_onnx
+python -m evaluation.benchmark --threads 2
+python web\make_results.py
+# server image + its check (run the container on port 7860 first)
+docker build -f deploy\Dockerfile -t freespace:local .
+python -m backend.check_api --url http://127.0.0.1:7860 --report_dir report\docker
 ```

@@ -13,17 +13,17 @@ import os
 import cv2
 import numpy as np
 
-from bev import build_grid, inflate
-from camera import backproject, transform_points
-from depth_model import DepthModel
-from eval_depth import crop_bottom_centre
-from eval_freespace import CELL, KITTI_CAMERA_HEIGHT, ROBOT_RADIUS, X_MAX, Y_HALF
-from kitti_loader import KittiRawDrive
-from pipeline import DRIVABLE_IDS, UPSAMPLE, fuse_labels, run, upsample_rows
-from planner import astar, pick_start_goal
-from pointcloud import classify_heights, floor_frame
-from scale import estimate_metric_scale
-from segmenter import Segmenter
+from freespace.bev import build_grid, inflate
+from freespace.camera import backproject, transform_points
+from models.depth_model import DepthModel
+from evaluation.eval_depth import crop_bottom_centre
+from evaluation.eval_freespace import CELL, KITTI_CAMERA_HEIGHT, ROBOT_RADIUS, X_MAX, Y_HALF
+from freespace.kitti_loader import KittiRawDrive
+from freespace.pipeline import DRIVABLE_IDS, UPSAMPLE, fuse_labels, run, upsample_rows
+from freespace.planner import astar, pick_start_goal
+from freespace.pointcloud import classify_heights, floor_frame
+from freespace.scale import estimate_metric_scale
+from models.segmenter import Segmenter
 
 
 def main():

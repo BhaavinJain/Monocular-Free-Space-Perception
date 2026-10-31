@@ -4,7 +4,7 @@ import os
 import numpy as np
 import cv2
 
-from camera import load_calib
+from freespace.camera import load_calib
 
 class KittiRawDrive:
     CALIB_FOLDER = "caliberation files"

@@ -11,8 +11,8 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoModelForDepthEstimation
 
-from depth_model import METRIC_CKPT, to_input_tensor, lead_normalisation
-from metrics import compute_depth_metrics, average_metrics
+from models.depth_model import METRIC_CKPT, to_input_tensor, lead_normalisation
+from freespace.metrics import compute_depth_metrics, average_metrics
 
 MIN_D, MAX_D = 1e-3, 80.0
 EVAL_CROP = (350, 1218)          # (H, W), multiples of 14, fits every KITTI date

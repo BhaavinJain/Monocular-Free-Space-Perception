@@ -6,9 +6,9 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
  
-from camera import backproject, lidar_to_depth_map, project
-from ground_plane import fit_ground, lower_region_points, tilt_deg
-from kitti_loader import KittiRawDrive
+from freespace.camera import backproject, lidar_to_depth_map, project
+from freespace.ground_plane import fit_ground, lower_region_points, tilt_deg
+from freespace.kitti_loader import KittiRawDrive
  
 KITTI_CAMERA_HEIGHT = 1.65
  

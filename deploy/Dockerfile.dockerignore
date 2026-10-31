@@ -1,0 +1,14 @@
+# Builds use the project root as context; send only what the image needs
+# (never .venv, data/, checkpoints/).
+*
+!deploy/requirements.txt
+!freespace/__init__.py
+!freespace/pipeline.py
+!freespace/bev.py
+!freespace/camera.py
+!freespace/ground_plane.py
+!freespace/planner.py
+!freespace/pointcloud.py
+!freespace/scale.py
+!freespace/metrics.py
+!backend/app.py

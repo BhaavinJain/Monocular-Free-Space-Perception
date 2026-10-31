@@ -6,8 +6,8 @@ Run twice, once per thread setting; each run adds its section to
 report/benchmark.json, and once both exist the speed-vs-accuracy table and
 the chosen size are written too:
 
-    python benchmark.py --threads 2    # approximates a free Hugging Face Space (2 vCPU)
-    python benchmark.py --threads 0    # this laptop, all cores (labelled as such)
+    python -m evaluation.benchmark --threads 2    # approximates a free Hugging Face Space (2 vCPU)
+    python -m evaluation.benchmark --threads 0    # this laptop, all cores (labelled as such)
 
 Two laptop cores are still faster than two shared Space vCPUs, so even the
 2-thread numbers are optimistic: M5 must re-measure on the real Space.
@@ -49,9 +49,9 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 
-from kitti_loader import KittiRawDrive
-from metrics import compute_depth_metrics, valid_mask
-from pipeline import onnx_fn, run
+from freespace.kitti_loader import KittiRawDrive
+from freespace.metrics import compute_depth_metrics, valid_mask
+from freespace.pipeline import onnx_fn, run
 
 KITTI_CAMERA_HEIGHT = 1.65
 # (H, W, crop height). Crop width follows from the aspect ratio. KITTI images

@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
  
-from camera import transform_points, project, in_image_mask
-from pointcloud import GROUND, IGNORE, classify_heights
+from freespace.camera import transform_points, project, in_image_mask
+from freespace.pointcloud import GROUND, IGNORE, classify_heights
  
 FREE, OCCUPIED, UNKNOWN = 0, 1, 2
  
